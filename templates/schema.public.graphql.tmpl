@@ -1,0 +1,34 @@
+## !NOTE: This file is auto-generated DO NOT EDIT
+## Generated at {{now}}
+
+{{define "resolver" -}}
+{{.Name}}{{if .Resolver.ParamString}}({{.Resolver.ParamString}}){{end}}: {{if eq .Resolver.Action "list"}}[{{end}}{{.Type}}{{if eq .Resolver.Action "list"}}]{{end}}
+{{- end}}
+
+{{range .Enums}}enum {{.Name}} {
+    {{range .Values}}{{.}}
+    {{end}}
+}
+{{end}}
+
+{{range .Objects}}type {{.Name}} {
+    {{range .Fields}}{{.Name}}: {{if .Resolver}}{{if eq .Resolver.Action "list"}}[{{end}}{{end}}{{.Type}}{{if .NonNullable}}!{{end}}{{if .Resolver}}{{if eq .Resolver.Action "list"}}]{{end}}{{end}}
+    {{end}}
+}
+{{end}}
+
+type Query {
+    {{range .Queries}}{{template "resolver" .}}
+    {{end}}
+}
+
+{{range .Inputs}}input {{.Name}} {
+    {{range .Params}}{{.Name}}: {{.Type}}{{if .NonNullable}}!{{end}}
+    {{end}}
+}
+{{end}}
+
+type Mutation {
+    {{range .Mutations}}{{.Name}}(input: {{.Resolver.Input}}): {{if eq .Resolver.Action "list"}}[{{end}}{{.Type}}{{if eq .Resolver.Action "list"}}]{{end}}
+    {{end}}
+}

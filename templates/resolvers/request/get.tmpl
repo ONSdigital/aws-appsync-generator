@@ -1,0 +1,25 @@
+{{define "request" -}}
+{{$as := .ArgSource -}}
+#set( $m={{ .Resolver.AppsyncFieldsMapString }} )
+#set( $fuzzy={{ .Resolver.AppsyncFuzzyMapString }})
+#set( $query = "" ) 
+#foreach( $f in $m.keySet() )
+  #if (! $util.isNull($ctx.{{$as}}.get($m[$f])) )
+    #if ( $fuzzy[$f] == true )
+      #set( $match="LIKE")
+      #set( $wildcard="%" )
+    #else
+      #set( $match="=" )
+      #set( $wildcard="" )
+    #end
+    #set( $query = $query + " and $f $match '$wildcard" + $ctx.{{$as}}.get($m[$f]).replace("'","''") + "$wildcard'" )
+  #end
+#end
+#set( $query = $query.replaceFirst(" and "," where "))
+{
+  "version": "2018-05-29",
+  "statements": [
+    "select * from {{.Resolver.Data.table}} $query"
+  ]
+}
+{{- end}}
