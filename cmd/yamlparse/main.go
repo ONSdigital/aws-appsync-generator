@@ -10,7 +10,7 @@ import (
 	"text/template"
 	"time"
 
-	"github.com/ONSdigital/appsync-resolver-builder/pkg/schema"
+	"github.com/ONSdigital/aws-appsync-generator/pkg/schema"
 	"github.com/pkg/errors"
 )
 

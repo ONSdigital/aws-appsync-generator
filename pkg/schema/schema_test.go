@@ -3,7 +3,7 @@ package schema_test
 import (
 	"testing"
 
-	"github.com/ONSdigital/appsync-resolver-builder/pkg/schema"
+	"github.com/ONSdigital/aws-appsync-generator/pkg/schema"
 )
 
 func TestNew(t *testing.T) {

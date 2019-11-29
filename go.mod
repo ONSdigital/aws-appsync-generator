@@ -1,4 +1,4 @@
-module github.com/ONSdigital/appsync-resolver-builder
+module github.com/ONSdigital/aws-appsync-generator
 
 go 1.13
 

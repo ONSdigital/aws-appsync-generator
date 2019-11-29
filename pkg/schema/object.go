@@ -7,10 +7,6 @@ type Object struct {
 	// The name of the object
 	Name string
 
-	// If set true, an associated Input object will also be created
-	// in the public schema
-	// MakeInput bool `yaml:"makeInput"`
-
 	// Sub
 	Fields    []*Field
 	Mutations interface{} // TODO
