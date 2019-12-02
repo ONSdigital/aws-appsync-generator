@@ -1,6 +1,6 @@
 # AWS Appsync Builder
 
-[![Build Status](https://travis-ci.com/ONSdigital/aws-appsync-generator.svg?branch=master)](https://travis-ci.com/ONSdigital/aws-appsync-generator)
+[![Build Status](https://travis-ci.com/ONSdigital/aws-appsync-generator.svg?branch=master)](https://travis-ci.com/ONSdigital/aws-appsync-generator) [![](https://godoc.org/github.com/ONSdigital/aws-appsync-generator/pkg/schema?status.svg)](http://godoc.org/github.com/ONSdigital/aws-appsync-generator/pkg/schema)
 
 Generates appsync-flavour graphql schema, resolvers and terraform configuration
 

@@ -10,6 +10,23 @@ type (
 	// Input defines an input object type
 	// These objects are used to define the fields to be passed to a
 	// mutation query.
+	//
+	// Multiple input definitions can be defined within the `inputs:` section
+	//
+	//   ---
+	//   inputs:
+	//     - name: CreatePetInput
+	//       base: Pet
+	//       nonNullableParams:
+	//         - price
+	//       exclude:
+	//         - id
+	//
+	//     - name: UpdatePetInput
+	//       base: Pet
+	//       nonNullableParams:
+	//         - id
+	//
 	Input struct {
 		// Name gives the name of the input object. By convention it should
 		// end with "Input"
@@ -36,7 +53,7 @@ type (
 
 		Params []*ResolverParam `yaml:"params"` // TODO remove?
 
-		excludeMap   map[string]bool
+		excludeMap     map[string]bool
 		nonNullableMap map[string]bool
 	}
 
@@ -72,7 +89,7 @@ func (i *Input) Populate(s *Schema) error {
 		}
 
 		// Allow the base object to specify an override
-		// value on the parameter type - this allows for 
+		// value on the parameter type - this allows for
 		// scalar ids to be used to insert where the base
 		// object would actually return an object type.
 		scalarType := f.Type
@@ -81,8 +98,8 @@ func (i *Input) Populate(s *Schema) error {
 		}
 
 		p := &ResolverParam{
-			Name:      f.Name,
-			Type:      scalarType,
+			Name:        f.Name,
+			Type:        scalarType,
 			NonNullable: nonNullable,
 		}
 		i.Params = append(i.Params, p)
