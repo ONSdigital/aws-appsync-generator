@@ -60,11 +60,15 @@ type (
 	unmarshalInput Input
 )
 
+// IsExcluded returns whether the given field name has been marked as excluded
+// from generation into the input object
 func (i *Input) IsExcluded(name string) bool {
 	_, ok := i.excludeMap[name]
 	return ok
 }
 
+// IsNonNullable returns whether the given field name has been marked as non
+// nullable in the input object
 func (i *Input) IsNonNullable(name string) bool {
 	_, ok := i.nonNullableMap[name]
 	return ok
