@@ -1,0 +1,28 @@
+{{define "request" -}}
+#set( $m={{ .Resolver.AppsyncFieldsMapString }} )
+#set( $keyFields={{ .Resolver.KeyFieldsString }} )
+
+#set($update  = "")
+#set($select = "")
+
+#foreach( $f in $m.keySet() )
+    #set( $debug = $debug + "$f = $ctx.args.input.get($f)")
+    #if (! $util.isNull($ctx.args.input.get($f)) )
+        #set( $update = $update + ", $f = '" + $ctx.args.input.get($f).replace("'","''") + "'" )
+    #end
+#end
+#foreach( $f in $keyFields )
+    #if (! $util.isNull($ctx.args.input.get($f)) )
+        #set( $select = $select + " and $f='" + $ctx.args.input.get($f).replace("'","''") + "'" )
+    #end
+#end
+#set( $update = $update.replaceFirst(", ",""))
+#set( $select = $select.replaceFirst("and","where"))
+{
+    "version": "2018-05-29",
+    "statements": [
+        "update Correspondence set $update $select",
+        "select * from Correspondence $select"
+    ]
+}
+{{- end}}
