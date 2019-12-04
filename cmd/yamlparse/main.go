@@ -87,7 +87,7 @@ func main() {
 					log.Fatal(err) // TODO
 				}
 
-				if err := write(GeneratedFilesPath+"/terraform/"+resolverIdentifier+".tf", generated); err != nil {
+				if err := write(GeneratedFilesPath+"/"+resolverIdentifier+".tf", generated); err != nil {
 					log.Fatal(err)
 				}
 			}
@@ -107,7 +107,7 @@ func main() {
 			log.Fatal(err) // TODO
 		}
 
-		if err := ioutil.WriteFile(GeneratedFilesPath+"/terraform/"+resolverIdentifier+".tf", generated.Bytes(), 0644); err != nil {
+		if err := ioutil.WriteFile(GeneratedFilesPath+"/"+resolverIdentifier+".tf", generated.Bytes(), 0644); err != nil {
 			log.Fatal(err) // TODO
 		}
 	}
@@ -140,7 +140,7 @@ func main() {
 			log.Fatal(err) // TODO
 		}
 
-		if err := ioutil.WriteFile(GeneratedFilesPath+"/terraform/"+resolverIdentifier+".tf", generated.Bytes(), 0644); err != nil {
+		if err := ioutil.WriteFile(GeneratedFilesPath+"/"+resolverIdentifier+".tf", generated.Bytes(), 0644); err != nil {
 			log.Fatal(err) // TODO
 		}
 	}
