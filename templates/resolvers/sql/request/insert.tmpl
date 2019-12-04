@@ -23,8 +23,8 @@
 {
     "version": "2018-05-29",
     "statements": [
-        "insert into Correspondence($fieldsClause) values($valuesClause)",
-        "select * from Correspondence $select"
+        "insert into {{.Resolver.Data.table}}($fieldsClause) values($valuesClause)",
+        "select * from {{.Resolver.Data.table}} $select"
     ]
 }
 {{- end}}

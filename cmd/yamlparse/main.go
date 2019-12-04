@@ -2,16 +2,18 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"text/template"
 	"time"
 
 	"github.com/ONSdigital/aws-appsync-generator/pkg/schema"
 	"github.com/pkg/errors"
+
+	flag "github.com/spf13/pflag"
 )
 
 // Path constants
@@ -22,11 +24,24 @@ const (
 	TemplateRoot = "templates"
 )
 
-func main() {
+var (
+	manifest     = ""
+	targetDBType = ""
+)
 
-	var manifest string
-	flag.StringVar(&manifest, "m", "manifest.yml", "manifest file to parse")
+func init() {
+	flag.StringVarP(&manifest, "manifest", "m", "manifest.yml", "manifest file to parse")
+	flag.StringVarP(&targetDBType, "target", "t", "", "target db - sql or dynamodb")
 	flag.Parse()
+
+	if targetDBType != "sql" && targetDBType != "dynamo" {
+		fmt.Println("Target must be supplied and be one of 'sql' or 'dynamo'")
+		flag.Usage()
+		os.Exit(1)
+	}
+}
+
+func main() {
 
 	body, err := ioutil.ReadFile(manifest)
 	if err != nil {
@@ -173,8 +188,8 @@ func generateResolverTerraform(r *schema.Resolver, name, parent, source string) 
 		// Template combination does not already exist
 		files := []string{
 			TemplateRoot + "/terraform/resolver.tmpl",
-			fmt.Sprintf("%s/resolvers/request/%s.tmpl", TemplateRoot, requestTemplate),
-			fmt.Sprintf("%s/resolvers/response/%s.tmpl", TemplateRoot, responseTemplate),
+			fmt.Sprintf("%s/resolvers/%s/request/%s.tmpl", TemplateRoot, targetDBType, requestTemplate),
+			fmt.Sprintf("%s/resolvers/%s/response/%s.tmpl", TemplateRoot, targetDBType, responseTemplate),
 		}
 		var err error
 		t, err = template.New("resolver.tmpl").Funcs(funcMap).ParseFiles(files...)
