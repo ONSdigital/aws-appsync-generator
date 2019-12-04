@@ -2,7 +2,6 @@ package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,6 +11,8 @@ import (
 
 	"github.com/ONSdigital/aws-appsync-generator/pkg/schema"
 	"github.com/pkg/errors"
+
+	flag "github.com/spf13/pflag"
 )
 
 // Path constants
@@ -25,7 +26,8 @@ const (
 func main() {
 
 	var manifest string
-	flag.StringVar(&manifest, "m", "manifest.yml", "manifest file to parse")
+	flag.StringVarP(&manifest, "manifest", "m", "manifest.yml", "manifest file to parse")
+
 	flag.Parse()
 
 	body, err := ioutil.ReadFile(manifest)
@@ -72,7 +74,7 @@ func main() {
 					log.Fatal(err) // TODO
 				}
 
-				if err := write(GeneratedFilesPath+"/terraform/"+resolverIdentifier+".tf", generated); err != nil {
+				if err := write(GeneratedFilesPath+"/"+resolverIdentifier+".tf", generated); err != nil {
 					log.Fatal(err)
 				}
 			}
@@ -92,7 +94,7 @@ func main() {
 			log.Fatal(err) // TODO
 		}
 
-		if err := ioutil.WriteFile(GeneratedFilesPath+"/terraform/"+resolverIdentifier+".tf", generated.Bytes(), 0644); err != nil {
+		if err := ioutil.WriteFile(GeneratedFilesPath+"/"+resolverIdentifier+".tf", generated.Bytes(), 0644); err != nil {
 			log.Fatal(err) // TODO
 		}
 	}
@@ -125,7 +127,7 @@ func main() {
 			log.Fatal(err) // TODO
 		}
 
-		if err := ioutil.WriteFile(GeneratedFilesPath+"/terraform/"+resolverIdentifier+".tf", generated.Bytes(), 0644); err != nil {
+		if err := ioutil.WriteFile(GeneratedFilesPath+"/"+resolverIdentifier+".tf", generated.Bytes(), 0644); err != nil {
 			log.Fatal(err) // TODO
 		}
 	}
