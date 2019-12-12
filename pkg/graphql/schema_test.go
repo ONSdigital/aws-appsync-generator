@@ -29,7 +29,6 @@ func TestSchemaGenerateBytes(t *testing.T) {
 		t.Errorf("error generating byte buffer '%v', expected nil", err)
 	}
 	assert.IsType(t, []byte{}, g)
-	// spew.Dump(g)
 }
 
 var exampleSchemaManifest = []byte(`
