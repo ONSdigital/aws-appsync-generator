@@ -7,6 +7,7 @@ import (
 	"text/template"
 )
 
+// Constants for resolver actions
 const (
 	ActionGet    = "get"
 	ActionList   = "list"
