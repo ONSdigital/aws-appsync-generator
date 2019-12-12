@@ -19,6 +19,8 @@ var (
 func init() {
 	flag.StringVarP(&manifest, "manifest", "m", "manifest.yml", "manifest file to parse")
 	flag.StringVarP(&targetDBType, "target", "t", "", "target db - sql or dynamo")
+
+	flag.StringVarP(&graphql.GeneratedFilesPath, "output", "o", graphql.GeneratedFilesPath, "path to output generated files to (CAUTION: will be emptied before write!)")
 	flag.Parse()
 
 	if targetDBType != "sql" && targetDBType != "dynamo" {
