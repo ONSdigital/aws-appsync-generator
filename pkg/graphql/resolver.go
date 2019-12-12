@@ -66,19 +66,24 @@ func (r *Resolver) KeyFieldJSONList() string {
 // suitable to be used as the arguments list in a resolver defintion in
 // the schemea
 func (r *Resolver) KeyFieldArgsString() string {
-	if r.Action == ActionList {
-		// For list actions, we require a filter list
+
+	switch r.Action {
+	case ActionList:
 		return fmt.Sprintf("(filter: %sFilter, limit: Int, nextToken: String)", r.Type)
+	case ActionInsert:
+		return fmt.Sprintf("(input: Create%sInput)", r.Type)
+	case ActionUpdate:
+		return fmt.Sprintf("(input: Update%sInput)", r.Type)
 	}
-	l := len(r.KeyFields)
-	if l == 0 {
-		return ""
+
+	if l := len(r.KeyFields); l > 0 {
+		fl := make([]string, l)
+		for i, f := range r.KeyFields {
+			fl[i] = fmt.Sprintf(`%s:%s`, f.Name, f.Type.Name)
+		}
+		return "(" + strings.Join(fl, ",") + ")"
 	}
-	fl := make([]string, l)
-	for i, f := range r.KeyFields {
-		fl[i] = fmt.Sprintf(`%s:%s`, f.Name, f.Type.Name)
-	}
-	return "(" + strings.Join(fl, ",") + ")"
+	return ""
 }
 
 // GenerateBytes renders the resolver ready to be written to an output stream

@@ -22,9 +22,10 @@ var schema Schema
 type (
 	// Schema represents the elements of a graphql schema
 	Schema struct {
-		Enums   []*Enum   `yaml:"enums"`
-		Objects []*Object `yaml:"objects"`
-		Queries []*Query  `yaml:"queries"`
+		Enums     []*Enum     `yaml:"enums"`
+		Objects   []*Object   `yaml:"objects"`
+		Queries   []*Query    `yaml:"queries"`
+		Mutations []*Mutation `yaml:"mutations"`
 
 		Sources map[string]Source `yaml:"sources"`
 
@@ -35,6 +36,7 @@ type (
 		// Connection objects to be built - populated automatically by "list" resolvers
 		Connections   []string
 		FilterObjects FilterObjectList
+		InputObjects  InputObjectList
 
 		// Contains any errors raised during the generation process
 		Errors []error
@@ -114,6 +116,10 @@ func setDataSource(r *Resolver, s *Schema) error {
 	return fmt.Errorf("resolver '%s_%s' has unknown data source '%s'", r.Parent, r.FieldName, r.SourceKey)
 }
 
+func (s *Schema) addError(err error) {
+	s.Errors = append(s.Errors, err)
+}
+
 // WriteAll outputs the generated public schema and any resolver files to the
 // location given by `GeneratedFilesPath`
 func (s *Schema) WriteAll() error {
@@ -138,10 +144,35 @@ func (s *Schema) WriteAll() error {
 				s.Connections = append(s.Connections, r.Type)
 				o, ok := s.objectLookup[r.Type]
 				if !ok {
-					s.Errors = append(s.Errors, fmt.Errorf("unknown type '%s' when attempting to create filter object", r.Type))
+					s.addError(fmt.Errorf("unknown type '%s' when attempting to create filter object", r.Type))
 					continue
 				}
 				s.AddFilterFromObject(o)
+			}
+
+			toWrite = append(toWrite, r)
+		}
+	}
+
+	for _, m := range s.Mutations {
+		if r := m.Resolver; r != nil {
+			r.Parent = "Mutation"
+			r.FieldName = m.Name
+			r.ArgsSource = "args"
+			if err := setDataSource(r, s); err != nil {
+				return err
+			}
+
+			// Create appropriate input objects
+			o, ok := s.objectLookup[r.Type]
+			if !ok {
+				s.addError(fmt.Errorf("unknown type '%s' when attempting to create input object", r.Type))
+				continue
+			}
+			err := s.AddInputFromObject(o, r.Action)
+			if err != nil {
+				s.addError(errors.Wrap(err, "failed to create input object"))
+				continue
 			}
 
 			toWrite = append(toWrite, r)
@@ -169,8 +200,6 @@ func (s *Schema) WriteAll() error {
 			}
 		}
 	}
-
-	// TODO ... mutation resolvers
 
 	// Add the schema to write of course!
 	toWrite = append(toWrite, s)

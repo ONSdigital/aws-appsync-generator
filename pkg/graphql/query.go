@@ -17,4 +17,7 @@ type (
 		Type     *FieldType `yaml:"type"`
 		Resolver *Resolver  `yaml:"resolver"`
 	}
+
+	// Mutation is a mutation query type
+	Mutation Query
 )

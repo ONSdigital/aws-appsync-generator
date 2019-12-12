@@ -12,12 +12,7 @@ var schemaTemplate = template.Must(template.New("schema").Funcs(funcMap).Parse(`
 {{- end}}
 
 {{define "resolver" -}}
-{{.Name}}
-	{{- if .Resolver.ParamString}}({{.Resolver.ParamString}}){{end -}}
-	:
-	{{- if eq .Resolver.Action "list"}}[{{end}}
-		{{- .Type -}}
-	{{- if eq .Resolver.Action "list"}}]{{end}}
+{{.Name}}{{ .Resolver.KeyFieldArgsString }}: {{.Resolver.Type -}}{{ if eq .Resolver.Action "list" }}Connection!{{ end }}
 {{- end}}
 
 {{- range .Enums}}enum {{.Name}} {
@@ -46,10 +41,25 @@ input {{ .Name }} {
 }
 {{ end -}}
 
+{{- range .InputObjects }}
+input {{ .Name }} {
+	{{ range .Fields -}}{{template "field" .}}
+	{{ end -}}
+}
+{{ end -}}
+
 {{- if .Queries}}
 type Query {
 	{{- range .Queries}}
-	{{.Name}}{{ .Resolver.KeyFieldArgsString }}: {{.Resolver.Type -}}{{ if eq .Resolver.Action "list" }}Connection!{{ end }}
+	{{ template "resolver" . }}
+	{{- end}}
+}
+{{end -}}
+
+{{- if .Mutations}}
+type Mutation {
+	{{- range .Mutations}}
+	{{ template "resolver" . }}
 	{{- end}}
 }
 {{end -}}
