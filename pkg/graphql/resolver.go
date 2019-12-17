@@ -97,8 +97,8 @@ func (r *Resolver) GenerateBytes() ([]byte, error) {
 	}
 
 	t, err = t.ParseFiles(
-		"templates/resolvers/dynamo/request/"+r.Action+".tmpl",
-		"templates/resolvers/dynamo/response/"+r.Action+".tmpl",
+		"templates/resolvers/"+r.DataSource.Type+"/request/"+r.Action+".tmpl",
+		"templates/resolvers/"+r.DataSource.Type+"/response/"+r.Action+".tmpl",
 	)
 	if err != nil {
 		return nil, err

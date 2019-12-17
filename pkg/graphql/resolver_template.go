@@ -1,6 +1,5 @@
 package graphql
 
-//template.Must(template.New("resolver").Funcs(funcMap).Parse(`
 var resolverTemplate = `
 ## !NOTE: This file is auto-generated DO NOT EDIT
 ## Generated at {{now}}
@@ -17,5 +16,3 @@ EOF
 EOF
 }
 `
-
-//))
