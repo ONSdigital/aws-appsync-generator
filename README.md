@@ -6,8 +6,16 @@ Generates appsync-flavour graphql schema, resolvers and terraform configuration
 
 ## Usage
 
+| Arg             | Default          | Required | Description                    |
+| --------------- | ---------------- | -------- | ------------------------------ |
+| `-m --manifest` | `./manifest.yml` | no       | Manifest file to generate from |
+| `-o --output`   | `./generated`    | no       | Default generated output path  |
+| `-t --target`   | _none_           | yes      | `dynamo` or `sql`              |
+
+Example:
+
 ```shell
-> go run cmd/yamlparse/main.go --m <config.yml>
+> go run cmd/generator/main.go --m ./resources/config.yml -t dyanmo
 ```
 
 ## LICENSE
