@@ -1,0 +1,256 @@
+# ==== ENUN TYPES ===============================
+
+enums:
+  - name: Status
+    values: [NEW,IN_PROGRESS,CLOSED]
+  - name: Channel
+    values: [EMAIL,LETTER,OTHER]
+  - name: Priority
+    values: [LOW,NORMAL,HIGH]
+
+# ==== OBJECT TYPES =============================
+
+objects:
+  - name: Correspondence
+    fields:
+      - name: reference
+        type: ID
+        nonNullable: true
+      - name: subject
+      - name: enquiry
+      - name: channel
+        type: Channel
+      - name: dateReceived
+        type: AWSDate
+      - name: response
+      - name: updatedBy
+      - name: updatedWhen
+        type: AWSDate
+      - name: status
+        type: Status
+      - name: priority
+        type: Priority
+      - name: originatorName
+      - name: originatorEmail
+      - name: originatorTelephone
+      - name: houseNameNo
+      - name: street
+      - name: additionalAddressLine
+      - name: townCity
+      - name: county
+      - name: country
+      - name: emailContentType
+      - name: rejectionReason
+        type: RejectionReason
+        inputType: String
+        resolver:  
+          action: get
+          params:
+            - name: name
+              sourceName: rejectionReason
+              nonNullable: true
+              type: String
+          data:
+            table: BusinessTheme
+      - name: advisorEmail
+      - name: copiedTo
+        type: CopiedTo
+        resolver:
+          action: list
+          params:
+            - name: reference
+              sourceName: reference
+              nonNullable: true
+              type: ID
+          data:
+            table: CopiedTo
+      - name: businessTheme
+        type: BusinessTheme
+        inputType: String
+        resolver:  
+          action: get
+          params:
+            - name: name
+              sourceName: businessTheme
+              nonNullable: true
+              type: String
+          data:
+            table: BusinessTheme
+      - name: businessSubTheme
+        type: BusinessSubTheme
+        inputType: String
+        resolver:  
+          action: get
+          params:
+            - name: name
+              sourceName: businessSubTheme
+              nonNullable: true
+              type: String
+          data:
+            table: BusinessSubTheme
+
+  - name: BusinessTheme
+    fields:
+      - name: name
+      - name: description
+
+  - name: BusinessSubTheme
+    fields:
+      - name: name
+      - name: description
+
+  - name: RejectionReason
+    fields:
+      - name: name
+      - name: description
+
+  - name: CopiedTo
+    fields:
+      - name: reference
+      - name: email
+        type: ID
+
+# ==== QUERIES ==================================
+
+queries:
+  - name: businessTheme
+    type: BusinessTheme
+    resolver:
+      action: get
+      params:
+        - name: name
+          nonNullable: true
+      data:
+        table: BusinessTheme
+
+  - name: businessSubTheme
+    type: BusinessSubTheme
+    resolver:
+      action: get
+      params:
+        - name: name
+          nonNullable: true
+      data:
+        table: BusinessSubTheme
+  
+  - name: rejectionReason
+    type: RejectionReason
+    resolver:
+      action: get
+      params:
+        - name: name
+          nonNullable: true
+      data:
+        table: RejectionReason
+
+  - name: correspondence
+    type: Correspondence
+    resolver:
+      action: get
+      params:
+        - name: reference
+          type: ID
+          nonNullable: true
+      data:
+        table: Correspondence
+
+  - name: listCorrespondence
+    type: Correspondence
+    resolver:
+      action: list
+      params:
+        - name: reference
+          type: ID
+        - name: subject
+          fuzzy: true
+        - name: originatorEmail
+          fuzzy: true
+        - name: advisorEmail
+          fuzzy: true
+      data:
+        table: Correspondence
+
+  - name: listBusinessThemes
+    type: BusinessTheme
+    resolver:
+      action: list
+      data:
+        table: BusinessTheme
+
+  - name: listBusinessSubThemes
+    type: BusinessSubTheme
+    resolver:
+      action: list
+      data:
+        table: BusinessSubTheme
+
+  - name: listRejectionReasons
+    type: RejectionReason
+    resolver:
+      action: list
+      data:
+        table: RejectionReason
+
+# ==== INPUT TYPES ==============================
+
+inputs:
+  - name: CreateCorrespondenceInput
+    base: Correspondence
+    nonNullableParams:
+      - reference
+      - subject
+      - enquiry
+      - channel
+      - businessTheme
+      - dateReceived
+    exclude:
+      - copiedTo
+  
+  - name: UpdateCorrespondenceInput
+    base: Correspondence
+    nonNullableParams:
+      - reference
+      - updatedBy
+      - updatedWhen
+    exclude:
+      - copiedTo
+  
+  - name: CreateCopiedToInput
+    base: CopiedTo
+    nonNullableParams:
+      - reference
+      - email
+
+# ==== MUTATIONS =============================
+  
+mutations:
+  - name: createCorrespondence
+    type: Correspondence
+    resolver:
+      action: insert
+      input: CreateCorrespondenceInput
+      keyFields:
+      - name: reference
+      data:
+        table: Correspondence
+
+  - name: updateCorrespondence
+    type: Correspondence
+    resolver:
+      action: update
+      input: UpdateCorrespondenceInput
+      keyFields:
+        - name: reference
+      data:
+        table: Correspondence
+
+  - name: createCopiedTo
+    type: CopiedTo
+    resolver:
+      action: insert
+      input: CreateCopiedToInput
+      keyFields:
+        - name: reference
+        - name: email
+      data:
+        table: CopiedTo
