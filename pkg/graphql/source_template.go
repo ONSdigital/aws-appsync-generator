@@ -2,7 +2,7 @@ package graphql
 
 var sourceTemplate = `
 {{ if eq .Type "dynamo" -}}
-resource "aws_iam_role_policy" "record" {
+resource "aws_iam_role_policy" "record_dynamo_{{.Name}}" {
 	name	= "${terraform.workspace}-dynamo-{{.Name}}"
 	role 	= aws_iam_role.record.id
 	policy 	= <<EOF
