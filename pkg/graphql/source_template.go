@@ -6,21 +6,21 @@ resource "aws_iam_role_policy" "record_dynamo_{{.Name}}" {
 	name		= "${terraform.workspace}-dynamo-{{.Name}}"
 	role 		= aws_iam_role.record.id
 	policy 		= <<EOF
-  {
-	"Version": "2012-10-17",
-	"Statement": [
-	  {
-		"Action": [
-		  "dynamodb:*"
-		],
-		"Effect": "Allow",
-		"Resource": [
-		  "${aws_dynamodb_table.{{.Name}}.arn}"
-		]
-	  }
-	]
-  }
-  EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+    "Action": [
+      "dynamodb:*"
+    ],
+    "Effect": "Allow",
+    "Resource": [
+      "${aws_dynamodb_table.{{.Name}}.arn}"
+    ]
+    }
+  ]
+}
+EOF
   }
 
 resource "aws_dynamodb_table" "{{.Name}}" {
