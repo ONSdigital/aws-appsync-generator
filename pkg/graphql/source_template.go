@@ -3,9 +3,10 @@ package graphql
 var sourceTemplate = `
 {{ if eq .Type "dynamo" -}}
 resource "aws_iam_role_policy" "record_dynamo_{{.Name}}" {
-	name	= "${terraform.workspace}-dynamo-{{.Name}}"
-	role 	= aws_iam_role.record.id
-	policy 	= <<EOF
+	name		= "${terraform.workspace}-dynamo-{{.Name}}"
+	role 		= aws_iam_role.record.id
+	depends_on 	= aws_dynamodb_table.{{.Name}}.arn
+	policy 		= <<EOF
   {
 	"Version": "2012-10-17",
 	"Statement": [
