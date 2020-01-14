@@ -27,7 +27,7 @@ type (
 		Queries   []*Query    `yaml:"queries"`
 		Mutations []*Mutation `yaml:"mutations"`
 
-		Sources map[string]Source `yaml:"sources"`
+		Sources map[string]*Source `yaml:"sources"`
 
 		// Automatically populated to create
 		// filtering options for list types
@@ -104,12 +104,12 @@ func (s *Schema) CleanOutput() error {
 
 func setDataSource(r *Resolver, s *Schema) error {
 	if ds, ok := s.Sources[r.SourceKey]; ok {
-		r.DataSource = &ds
+		r.DataSource = ds
 		return nil
 	}
 
 	if ds, ok := s.Sources["default"]; ok {
-		r.DataSource = &ds
+		r.DataSource = ds
 		return nil
 	}
 
@@ -199,6 +199,10 @@ func (s *Schema) WriteAll() error {
 				toWrite = append(toWrite, r)
 			}
 		}
+	}
+
+	for _, ds := range s.Sources {
+		toWrite = append(toWrite, ds)
 	}
 
 	// Add the schema to write of course!

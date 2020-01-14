@@ -18,28 +18,34 @@ func TestUnmarshalDataSource(t *testing.T) {
 	}{
 		{
 			"Good dynamo data source",
-			[]byte("name: dynamosource\ntype: dynamo"),
+			[]byte("name: dynamosource\ndynamo:\n  hash_key: key"),
 			&graphql.Source{
 				Name: "dynamosource",
 				Type: "dynamo",
+				Dynamo: &graphql.DynamoSource{
+					HashKey: "key",
+				},
 			},
 			nil,
 		},
 		{
 			"Good aurora data source",
-			[]byte("name: aurorasource\ntype: aurora"),
+			[]byte("name: aurorasource\nsql:\n  primary_key: key"),
 			&graphql.Source{
 				Name: "aurorasource",
-				Type: "aurora",
+				Type: "sql",
+				SQL: &graphql.SQLSource{
+					PrimaryKey: "key",
+				},
 			},
 			nil,
 		},
-		{
-			"Unsupported type",
-			[]byte("name: unsupported\ntype: sheepdb"),
-			nil,
-			errors.New("datasource 'unsupported' has unsupported type: sheepdb"),
-		},
+		// {
+		// 	"Unsupported type",
+		// 	[]byte("name: unsupported\ntype: sheepdb"),
+		// 	nil,
+		// 	errors.New("datasource 'unsupported' has unsupported type: sheepdb"),
+		// },
 		{
 			"Missing name",
 			[]byte("type: dynamo"),
