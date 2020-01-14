@@ -46,7 +46,7 @@ resource "aws_dynamodb_table" "{{.Name}}" {
 
 resource "aws_appsync_datasource" "{{.Name}}" {
 	api_id 				= aws_appsync_graphql_api.record.id
-	name 				= ${terraform.workspace}_{{.Name}}
+	name 				= "${terraform.workspace}_{{.Name}}"
 	service_role_arn 	= aws_iam_role.record.arn
 	type				= "AMAZON_DYNAMODB"
 	depends_on			= [
