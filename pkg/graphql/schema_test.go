@@ -8,7 +8,7 @@ import (
 )
 
 func mustCompileSchema(t *testing.T, manifest []byte) *graphql.Schema {
-	s, err := graphql.NewSchemaFromManifest(exampleSchemaManifest, "dyanmo")
+	s, err := graphql.NewSchemaFromManifest(exampleSchemaManifest)
 	if err != nil {
 		t.Fatalf("unable to parse manifest: %v", err)
 	}
@@ -16,7 +16,7 @@ func mustCompileSchema(t *testing.T, manifest []byte) *graphql.Schema {
 }
 
 func TestNewSchemaFromManifest(t *testing.T) {
-	_, err := graphql.NewSchemaFromManifest(exampleSchemaManifest, "dyanmo")
+	_, err := graphql.NewSchemaFromManifest(exampleSchemaManifest)
 	if err != nil {
 		t.Errorf("error parsing definition '%v', expected nil", err)
 	}

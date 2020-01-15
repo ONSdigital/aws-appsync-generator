@@ -33,3 +33,77 @@ func TestUnmarshalQuery(t *testing.T) {
 		// assert.Equal(t, c.expected, &f, "unmarshal incorrect")
 	}
 }
+
+func TestNewInputFromObject(t *testing.T) {
+
+	object := graphql.Object{
+		Name: "Cat",
+		Fields: []*graphql.Field{
+			{
+				Name: "fur",
+				Type: &graphql.FieldType{
+					Name:        "String",
+					IsList:      false,
+					NonNullable: false,
+				},
+				InputType: &graphql.FieldType{
+					Name:        "Int",
+					IsList:      false,
+					NonNullable: false,
+				},
+			},
+			{
+				Name: "name",
+				Type: &graphql.FieldType{
+					Name:        "String",
+					IsList:      false,
+					NonNullable: true,
+				},
+			},
+			{
+				Name: "toys",
+				Type: &graphql.FieldType{
+					Name:        "String",
+					IsList:      true,
+					NonNullable: false,
+				},
+			},
+		},
+	}
+
+	expected := &graphql.InputObject{
+		Name: "CreateCatInput",
+		Fields: []*graphql.Field{
+			{
+				Name: "fur",
+				Type: &graphql.FieldType{
+					Name:        "Int",
+					IsList:      false,
+					NonNullable: false,
+				},
+			},
+			{
+				Name: "name",
+				Type: &graphql.FieldType{
+					Name:        "String",
+					IsList:      false,
+					NonNullable: false,
+				},
+			},
+			{
+				Name: "toys",
+				Type: &graphql.FieldType{
+					Name:        "String",
+					IsList:      true,
+					NonNullable: false,
+				},
+			},
+		},
+	}
+
+	input, err := graphql.NewInputFromObject(&object, graphql.ActionInsert)
+
+	assert.NoError(t, err)
+	assert.Equal(t, expected, input)
+
+}
