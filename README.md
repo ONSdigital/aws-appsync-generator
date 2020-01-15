@@ -10,12 +10,11 @@ Generates appsync-flavour graphql schema, resolvers and terraform configuration
 | --------------- | ---------------- | -------- | ------------------------------ |
 | `-m --manifest` | `./manifest.yml` | no       | Manifest file to generate from |
 | `-o --output`   | `./generated`    | no       | Default generated output path  |
-| `-t --target`   | _none_           | yes      | `dynamo` or `sql`              |
 
 Example:
 
 ```shell
-> go run cmd/generator/main.go --m ./resources/config.yml -t dyanmo
+> go run cmd/generator/main.go --m ./resources/config.yml
 ```
 
 ## Manifest reference
