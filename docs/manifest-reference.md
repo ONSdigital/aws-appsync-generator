@@ -1,0 +1,162 @@
+# Manifest Reference
+
+- [Manifest Reference](#manifest-reference)
+  - [Blocks](#blocks)
+    - [Sources Block](#sources-block)
+    - [Enums Block](#enums-block)
+    - [Objects Block](#objects-block)
+    - [Queries Block](#queries-block)
+    - [Mutations Block](#mutations-block)
+  - [Sub-Blocks](#sub-blocks)
+    - [Field Sub-Block](#field-sub-block)
+
+## Blocks
+
+_Blocks_ declare parts of the configuration manifest
+
+---
+
+### Sources Block
+
+The `sources` block defines configuration of appsync data sources
+
+Exactly one of `dynamo` or `sql` subblocks _must_ be supplied
+
+**sources** [Hash, required]: Specifies the data sources available to the appsync api
+
+- **&lt;sourcekey&gt;** [String, required]: Name of the data source that may be referenced in resolvers
+  - **name** [String, required]: Name of the data source. When the type is `dynamodb` this will be the table name
+  - **dynamo** [Hash, optional]: Describes `dynamodb` specific configuration options.
+    - **hash_key** [String, required]: Specifies the field to be used as the table `hash key`
+    - **sort_key** [String, optional]: Specifies the field to be used as the table `sort key`
+  - **sql** [Hash, optional]
+    - _not yet implemented_
+
+Example
+
+```yml
+sources:
+
+  users:
+    name: users
+    dynamo:
+      hash_key: email
+
+  customers:
+    name: customers
+    dynamo:
+      hash_key: login
+      sort_key: last_active_date
+```
+
+---
+
+### Enums Block
+
+The `enums` block defines configuration of enumeration types for the graphql schema. A schema need not declare any enums
+
+**enums** [Array, optional]: Declares a set of enums
+
+- **name** [String, required]: The type name of the enumeration
+- **values** [Array required]: The set of values that make up the enumeration
+
+Example:
+
+```yml
+enums:
+  - name: Status
+    values: [UNREAD,READ,REPLIED,FORWARDED]
+  - name: Priority
+    values: [LOW,MEDIUM,HIGH]
+```
+
+---
+
+### Objects Block
+
+The `objects` block defines graphql object types
+
+**objects** [Array, required]
+
+- **name** [String, required]: The name identifier for the object
+- **fields** [Array, required]: Each sub-block specifies a field in the object
+
+See [field](#field-sub-block) for more information
+
+Example:
+
+```yml
+objects:
+  - name: animal
+    fields:
+      - name: id
+        type: ID!
+      - name: name
+      - name: isFluffy
+        type: Boolean
+      - name: favouriteToys
+        type: [String]
+      - name: license
+        type: Licence
+        inputType: ID
+
+  - name: License
+    fields:
+      # ... omitted
+```
+
+---
+
+### Queries Block
+
+The `queries` block declare queries to be created in the schema. A schema need not declare any queries.
+
+**queries** [Array, optional]
+
+- 
+
+---
+
+### Mutations Block
+
+---
+
+## Sub-Blocks
+
+_Sub-Blocks_ declare smaller resuable chunks of configuration
+
+### Field Sub-Block
+
+The `field` sub-block is a field inside another type (`object`, `resolver` etc)
+
+- **name**: [String, required]: The name of the field
+- **type**: [String, optional]: The `type` of the field. May be a normal graphql `scalar type`, a `graphql object type` or `AWS scalar type`. If not specified, will default to `String`.
+  - _If an exclaimation mark is provided, this denotes the field as `non nullable`_
+  - _If surrounded with square brackets, this denotes the field as an `array` type_
+- **inputType**: [String, optional]: Only applies to fields used in [object blocks](#objects-block). If present, will override the field type in any associated generated `input object`. This is useful if you want to return a nested type when reading an object, but only specify an ID to object when creating it
+
+Example:
+
+```yml
+objects:
+  - name: anobject
+    fields:
+
+      # An ID field with a non-nullable marker
+      - name: id
+        type: ID!
+
+      # A field defaulting to a String type
+      - name: email
+
+      # A field with object type, overriden for input
+      - name: appointment
+        type: Apppointment
+        inputType: ID
+
+      # An array type
+      - name: cc
+        type: [String]
+```
+
+---
