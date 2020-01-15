@@ -12,22 +12,13 @@ import (
 )
 
 var (
-	manifest     = ""
-	targetDBType = ""
+	manifest = ""
 )
 
 func init() {
 	flag.StringVarP(&manifest, "manifest", "m", "manifest.yml", "manifest file to parse")
-	flag.StringVarP(&targetDBType, "target", "t", "", "target db - sql or dynamo")
-
 	flag.StringVarP(&graphql.GeneratedFilesPath, "output", "o", graphql.GeneratedFilesPath, "path to output generated files to (CAUTION: will be emptied before write!)")
 	flag.Parse()
-
-	if targetDBType != "sql" && targetDBType != "dynamo" {
-		fmt.Println("Target must be supplied and be one of 'sql' or 'dynamo'")
-		flag.Usage()
-		os.Exit(1)
-	}
 }
 
 func main() {
@@ -36,7 +27,7 @@ func main() {
 		log.Fatal(errors.Wrapf(err, "failed to read manifest '%s'", manifest))
 	}
 
-	s, err := graphql.NewSchemaFromManifest(body, targetDBType)
+	s, err := graphql.NewSchemaFromManifest(body)
 	if err != nil {
 		log.Fatal(errors.Wrap(err, "failed to parse definition"))
 	}

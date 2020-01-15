@@ -48,7 +48,7 @@ type (
 
 // NewSchemaFromManifest parses a schema manifest in YAML format and generates
 // a new schema struct
-func NewSchemaFromManifest(manifest []byte, dataSourceType string) (*Schema, error) {
+func NewSchemaFromManifest(manifest []byte) (*Schema, error) {
 	var s Schema
 	if err := yaml.UnmarshalStrict(manifest, &s); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal schema definition")
