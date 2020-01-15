@@ -18,6 +18,10 @@ Example:
 > go run cmd/generator/main.go --m ./resources/config.yml -t dyanmo
 ```
 
+## Manifest reference
+
+The manifest schema reference can be found in the [documentation folder](docs/manifest-reference.md)
+
 ## LICENSE
 
 Copyright (c) 2019 Crown Copyright (Office for National Statistics)

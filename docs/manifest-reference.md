@@ -9,6 +9,7 @@
     - [Mutations Block](#mutations-block)
   - [Sub-Blocks](#sub-blocks)
     - [Field Sub-Block](#field-sub-block)
+    - [Resolver Sub-Block](#resolver-sub-block)
 
 ## Blocks
 
@@ -76,7 +77,7 @@ enums:
 
 The `objects` block defines graphql object types
 
-**objects** [Array, required]
+**objects** [Array, required]: Declare a set of objects
 
 - **name** [String, required]: The name identifier for the object
 - **fields** [Array, required]: Each sub-block specifies a field in the object
@@ -109,15 +110,54 @@ objects:
 
 ### Queries Block
 
-The `queries` block declare queries to be created in the schema. A schema need not declare any queries.
+The `queries` block declares queries to be created in the schema. A schema need not declare any queries.
 
-**queries** [Array, optional]
+**queries** [Array, optional]: Declare a set of queries
 
-- 
+- **name** [String, required]: Name of the query. No restriction, but by convention prefix with the action (e.g. `get`, `list`)
+- **resolver** [Hash, required]: The resolver configuration to satisfy the query
+
+See [resolver](#resolver-sub-block) for more information
+
+Example
+
+```yml
+queries:
+
+  - name: getAnimal
+    resolver:
+      action: get
+      type: Animal
+      keyFields:
+        - name: id
+          type: ID
+
+  - name: listAnimals
+    resolver:
+      action: list
+      type: Animal
+```
 
 ---
 
 ### Mutations Block
+
+The `mutations` block declares mutations to be created in the schema. A schema need not declare any mutations.
+
+**mutations** [Array, optional]: Declare a set of mutations. Each mutation definition is the same structure as used for [queries](#queries-block)
+
+Example
+
+```yml
+mutations:
+  - name: createAnimal
+    resolver:
+      action: insert
+      type: Animal
+      keyFields:
+        - name: id
+          type: ID`
+```
 
 ---
 
@@ -160,3 +200,45 @@ objects:
 ```
 
 ---
+
+### Resolver Sub-Block
+
+The `resolver` sub-block is a resolver for a [query](#queries-block) or a [mutation](#mutations-block)
+
+**resolver** [Hash, required]
+
+- **action** [String, required]: Defines the action the resolver should take. Must be one of `get`,`list`,`update`,`delete` or `insert`
+- **type** [String, required]: The `type` returned by the resolver.
+  - _If the resolver is of a kind that returns multiple values, this will automatically become an array. There is no need to mark up the type with square brackets_
+- **source** [String, optional]: If present, must be `source key` as declared in the [sources](#sources-block) block. If omitted it will be set to the _default_ `source key` (if one has been declared)
+- **keyFields** [Array, optional]: Used to denote which field (defined in the type being returned) to use as the look up key fields. This will become a mandatory field in the query/mutation definition
+  - _Not applicable to `list` action types_
+  - _Each field is [field](#field-sub-block) sub-block_
+
+Additional resources will be created in the schema appropriate to the the action specified (e.g. input and filter object types)
+
+Example:
+
+```yml
+  # In a get query
+  resolver:
+    action: get
+    type: Animal
+    keyFields:
+      - name: id
+        type: ID
+
+  # In a list query with a specific source
+  resolver:
+    action: list
+    type: Animal
+    source: ZooAnimals
+
+  # In a create mutation
+  resolver:
+    action: create
+    type: Animal
+    keyFields:
+      - name: id
+        type: ID
+```
