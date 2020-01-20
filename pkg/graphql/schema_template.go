@@ -12,7 +12,7 @@ var schemaTemplate = template.Must(template.New("schema").Funcs(funcMap).Parse(`
 {{- end}}
 
 {{define "resolver" -}}
-{{.Name}}{{ .Resolver.KeyFieldArgsString }}: {{.Resolver.Type -}}{{ if eq .Resolver.Action "list" }}Connection!{{ end }}
+{{.Name}}{{ .Resolver.KeyFieldArgsString }}: {{.Resolver.Type.Name -}}{{ if eq .Resolver.Action "list" }}Connection!{{ end }}
 {{- end}}
 
 {{- range .Enums}}enum {{.Name}} {

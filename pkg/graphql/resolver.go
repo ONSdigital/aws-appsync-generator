@@ -27,7 +27,8 @@ type (
 		// Appropriate "Input" variants of the object will then be defined.
 		// Where the action is "list", the base type will also have an associated
 		// "Connection" object defined.
-		Type string `yaml:"type"`
+		// Type string `yaml:"type"`
+		Type *FieldType `yaml:"type"`
 
 		// Set of fields to be used as keys in the query (primary key etc)
 		KeyFields []*Field `yaml:"keyFields"`
@@ -70,11 +71,11 @@ func (r *Resolver) KeyFieldArgsString() string {
 
 	switch r.Action {
 	case ActionList:
-		return fmt.Sprintf("(filter: %sFilter, limit: Int, nextToken: String)", r.Type)
+		return fmt.Sprintf("(filter: %sFilter, limit: Int, nextToken: String)", r.Type.Name)
 	case ActionInsert:
-		return fmt.Sprintf("(input: Create%sInput)", r.Type)
+		return fmt.Sprintf("(input: Create%sInput)", r.Type.Name)
 	case ActionUpdate:
-		return fmt.Sprintf("(input: Update%sInput)", r.Type)
+		return fmt.Sprintf("(input: Update%sInput)", r.Type.Name)
 	}
 
 	if l := len(r.KeyFields); l > 0 {
@@ -96,15 +97,53 @@ func (r *Resolver) GenerateBytes() ([]byte, error) {
 		return nil, err
 	}
 
+	nested := ""
+	if r.ArgsSource == "source" {
+		nested = "-nested"
+	}
+
 	t, err = t.ParseFiles(
-		"templates/resolvers/"+r.DataSource.Type+"/request/"+r.Action+".tmpl",
-		"templates/resolvers/"+r.DataSource.Type+"/response/"+r.Action+".tmpl",
+		"templates/resolvers/"+r.DataSource.Type+"/request/"+r.Action+nested+".tmpl",
+		"templates/resolvers/"+r.DataSource.Type+"/response/"+r.Action+nested+".tmpl",
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := t.Execute(&generated, r); err != nil {
+	type ResolverData struct {
+		KeyFieldJSONMap string
+		ArgsSource      string
+		HashKey         string
+		SortKey         string
+		ParentKey       string
+		Parent          string
+		FieldName       string
+		DataSource      *Source
+	}
+
+	d := ResolverData{
+		KeyFieldJSONMap: r.KeyFieldJSONMap(),
+		ArgsSource:      r.ArgsSource,
+		Parent:          r.Parent,
+		FieldName:       r.FieldName,
+		DataSource:      r.DataSource,
+	}
+
+	if r.DataSource.Type == "dynamo" && len(r.KeyFields) > 0 {
+		d.HashKey = r.KeyFields[0].Name
+		if len(r.KeyFields) > 1 {
+			d.SortKey = r.KeyFields[1].Name
+		}
+		if r.Parent != "Query" && r.Parent != "Mutation" {
+			d.ParentKey = r.KeyFields[0].Parent
+		}
+	}
+
+	if r.Action == ActionList && !r.Type.IsList {
+		return nil, fmt.Errorf("mismatched resolver - when Action is list, Type must be a list type: %s", r.FieldName)
+	}
+
+	if err := t.Execute(&generated, d); err != nil {
 		return nil, err
 	}
 	return generated.Bytes(), nil

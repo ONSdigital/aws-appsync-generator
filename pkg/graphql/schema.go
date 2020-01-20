@@ -141,10 +141,10 @@ func (s *Schema) WriteAll() error {
 
 			// Create appropriate input and connection objects
 			if r.Action == ActionList {
-				s.Connections = append(s.Connections, r.Type)
-				o, ok := s.objectLookup[r.Type]
+				s.Connections = append(s.Connections, r.Type.Name)
+				o, ok := s.objectLookup[r.Type.Name]
 				if !ok {
-					s.addError(fmt.Errorf("unknown type '%s' when attempting to create filter object", r.Type))
+					s.addError(fmt.Errorf("unknown type '%s' when attempting to create filter object", r.Type.Name))
 					continue
 				}
 				s.AddFilterFromObject(o)
@@ -164,9 +164,9 @@ func (s *Schema) WriteAll() error {
 			}
 
 			// Create appropriate input objects
-			o, ok := s.objectLookup[r.Type]
+			o, ok := s.objectLookup[r.Type.Name]
 			if !ok {
-				s.addError(fmt.Errorf("unknown type '%s' when attempting to create input object", r.Type))
+				s.addError(fmt.Errorf("unknown type '%s' when attempting to create input object", r.Type.Name))
 				continue
 			}
 			err := s.AddInputFromObject(o, r.Action)
@@ -178,6 +178,8 @@ func (s *Schema) WriteAll() error {
 			toWrite = append(toWrite, r)
 		}
 	}
+
+	// connections := map[string]bool{}
 
 	for _, o := range s.Objects {
 		for _, f := range o.Fields {
@@ -191,7 +193,12 @@ func (s *Schema) WriteAll() error {
 
 				// Create appropriate input and connection objects
 				if r.Action == ActionList {
-					s.Connections = append(s.Connections, r.Type)
+					if _, ok := s.objectLookup[r.Type.Name]; !ok {
+						// Omit if already created with the objects
+						// TODO better hash map of connections
+						s.Connections = append(s.Connections, r.Type.Name)
+						// connections[r.Type.Name] = true
+					}
 				}
 
 				// TODO - filters

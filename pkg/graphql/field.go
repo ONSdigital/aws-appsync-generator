@@ -36,6 +36,11 @@ type (
 		// Must specify exactly one of Type OR Resolver
 		Type *FieldType
 
+		// (Optional) Only applicable when used as a field is used as a key in
+		// a nested resolver. It gives the name of the field in the parent to
+		// be used as the key to the nested data source.
+		Parent string
+
 		// (Optional) Define a resolver to fetch the value for this field
 		// Resolver *Resolver `yaml:"resolver,omitempty"`
 		// Must specify exactly one of Type OR Resolver
@@ -101,6 +106,7 @@ func (f *Field) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// have control over type checking and defauting fields.
 	var u struct {
 		Name      string     `yaml:"name"`
+		Parent    string     `yaml:"parent"`
 		Resolver  *Resolver  `yaml:"resolver"`
 		Type      *FieldType `yaml:"type"`
 		InputType *FieldType `yaml:"inputType"`
@@ -116,11 +122,10 @@ func (f *Field) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	f.Resolver = u.Resolver
 	f.Type = u.Type
 	f.InputType = u.InputType
+	f.Parent = u.Parent
 
-	// Ensure at least ONE of Type or Resolver is set (and default
-	// to a Type:String if neither)
-	if u.Resolver != nil && u.Type != nil {
-		return ErrTypeAndResolver
+	if u.Resolver != nil {
+		f.Type = u.Resolver.Type
 	}
 
 	// If the type isn't set and there is no resolver,

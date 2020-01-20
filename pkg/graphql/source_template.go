@@ -27,6 +27,14 @@ resource "aws_dynamodb_table" "{{.Name}}" {
 	name 			= "${terraform.workspace}-{{.Name}}"
 	billing_mode 	= "PAY_PER_REQUEST"
 	hash_key 		= "{{.Dynamo.HashKey}}"
+	{{ if .Dynamo.SortKey -}}
+	range_key		= "{{.Dynamo.SortKey}}"
+
+	attribute {
+		name = "{{.Dynamo.SortKey}}"
+		type = "S"
+	}
+	{{- end }}
 
 	attribute {
 		name = "{{.Dynamo.HashKey}}"
