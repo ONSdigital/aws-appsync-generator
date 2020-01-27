@@ -1,13 +1,20 @@
 {{define "request" -}}
-#set( $keyFields={{ .KeyFieldJSONMap }} )
+#set( $keyFields={{ .KeyFieldMapJSON }} )
+
+{{- if .IsNested -}}
+#set( $argsSource="source" )
+{{- else -}}
+#set( $argsSource="args" )
+{{- end -}}
+
 {
     "version": "2017-02-28",
     "operation": "GetItem",
     "key": {
         #foreach( $key in $keyFields.keySet() )
-        #if( !$util.IsNull($ctx.{{ .ArgsSource }}.get("$key")) )
-        "$key": $util.dynamodb.toDynamoDBJson($ctx.{{ .ArgsSource }}.get("$key")),
-        #end
+            #if( !$util.IsNull($ctx.$argsSource.get("$key")) )
+        "$key": $util.dynamodb.toDynamoDBJson($ctx.$argsSource.get("$key")),
+            #end
         #end
     }
 }
