@@ -20,10 +20,16 @@ type (
 		Type string
 	}
 
+	// DynamoKeyType represents a key with type
+	DynamoKeyType struct {
+		Name string `yaml:"name"`
+		Type string `yaml:"type"`
+	}
+
 	// DynamoSource represents a dynamo db data source
 	DynamoSource struct {
-		HashKey string `yaml:"hash_key"`
-		SortKey string `yaml:"sort_key,omitempty"`
+		HashKey *DynamoKeyType `yaml:"hash_key"`
+		SortKey *DynamoKeyType `yaml:"sort_key,omitempty"`
 	}
 
 	// SQLSource represents a sql based db data source
@@ -54,6 +60,14 @@ func (ds *Source) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	switch {
 	case ds.Dynamo != nil:
 		ds.Type = "dynamo"
+		if ds.Dynamo.HashKey.Type == "" {
+			ds.Dynamo.HashKey.Type = "S"
+		}
+		if ds.Dynamo.SortKey != nil {
+			if ds.Dynamo.SortKey.Type == "" {
+				ds.Dynamo.SortKey.Type = "S"
+			}
+		}
 	case ds.SQL != nil:
 		ds.Type = "sql"
 	default:

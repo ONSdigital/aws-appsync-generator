@@ -96,16 +96,16 @@ func TestUnmarshalField(t *testing.T) {
 			},
 			nil,
 		},
-		{
-			"Field should error with type and resolver",
-			[]byte("name: bad\ntype: String\nresolver:\n  action: get\n"),
-			&graphql.Field{
-				Name:     "bad",
-				Type:     nil,
-				Resolver: nil,
-			},
-			graphql.ErrTypeAndResolver,
-		},
+		// {
+		// 	"Field should error with type and resolver",
+		// 	[]byte("name: bad\ntype: String\nresolver:\n  action: get\n"),
+		// 	&graphql.Field{
+		// 		Name:     "bad",
+		// 		Type:     nil,
+		// 		Resolver: nil,
+		// 	},
+		// 	graphql.ErrTypeAndResolver,
+		// },
 	} {
 		var f graphql.Field
 		err := yaml.Unmarshal(c.yaml, &f)

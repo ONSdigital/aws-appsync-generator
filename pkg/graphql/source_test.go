@@ -18,12 +18,15 @@ func TestUnmarshalDataSource(t *testing.T) {
 	}{
 		{
 			"Good dynamo data source",
-			[]byte("name: dynamosource\ndynamo:\n  hash_key: key"),
+			[]byte("name: dynamosource\ndynamo:\n  hash_key:\n    name: key"),
 			&graphql.Source{
 				Name: "dynamosource",
 				Type: "dynamo",
 				Dynamo: &graphql.DynamoSource{
-					HashKey: "key",
+					HashKey: &graphql.DynamoKeyType{
+						Name: "key",
+						Type: "S",
+					},
 				},
 			},
 			nil,

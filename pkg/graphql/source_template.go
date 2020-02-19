@@ -26,19 +26,19 @@ EOF
 resource "aws_dynamodb_table" "{{.Name}}" {
 	name 			= "${terraform.workspace}-{{.Name}}"
 	billing_mode 	= "PAY_PER_REQUEST"
-	hash_key 		= "{{.Dynamo.HashKey}}"
+	hash_key 		= "{{.Dynamo.HashKey.Name}}"
 	{{ if .Dynamo.SortKey -}}
-	range_key		= "{{.Dynamo.SortKey}}"
+	range_key		= "{{.Dynamo.SortKey.Name}}"
 
 	attribute {
-		name = "{{.Dynamo.SortKey}}"
-		type = "S"
+		name = "{{.Dynamo.SortKey.Name}}"
+		type = "{{.Dynamo.SortKey.Type}}"
 	}
 	{{- end }}
 
 	attribute {
-		name = "{{.Dynamo.HashKey}}"
-		type = "S"
+		name = "{{.Dynamo.HashKey.Name}}"
+		type = "{{.Dynamo.HashKey.Type}}"
 	}
 
 	ttl {
