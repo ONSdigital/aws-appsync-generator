@@ -28,8 +28,12 @@ Exactly one of `dynamo` or `sql` subblocks _must_ be supplied
 - **&lt;sourcekey&gt;** [String, required]: Name of the data source that may be referenced in resolvers
   - **name** [String, required]: Name of the data source. When the type is `dynamodb` this will be the table name
   - **dynamo** [Hash, optional]: Describes `dynamodb` specific configuration options.
-    - **hash_key** [String, required]: Specifies the field to be used as the table `hash key`
-    - **sort_key** [String, optional]: Specifies the field to be used as the table `sort key`
+    - **hash_key** [DynamoKey, required]: Specifies the field to be used as the table `hash key`
+      - **name** [String, required]: Name of the field
+      - **type** [String, optional]: The dynamodb type of the field (default `S` (string))
+    - **sort_key** [DynamoKey, optional]: Specifies the field to be used as the table `sort key`
+      - **name** [String, required]: Name of the field
+      - **type** [String, optional]: The dynamodb type of the field (default `S` (string))
   - **sql** [Hash, optional]
     - _not yet implemented_
 
@@ -41,13 +45,17 @@ sources:
   users:
     name: users
     dynamo:
-      hash_key: email
+      hash_key:
+        name: email
 
   customers:
     name: customers
     dynamo:
-      hash_key: login
-      sort_key: last_active_date
+      hash_key:
+        name: login
+      sort_key:
+        name: priority
+        type: N
 ```
 
 ---
