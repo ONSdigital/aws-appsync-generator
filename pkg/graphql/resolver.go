@@ -111,22 +111,24 @@ func (r *Resolver) GenerateBytes() ([]byte, error) {
 	}
 
 	type ResolverData struct {
-		KeyFieldJSONMap string
-		ArgsSource      string
-		HashKey         string
-		SortKey         string
-		ParentKey       string
-		Parent          string
-		FieldName       string
-		DataSource      *Source
+		KeyFieldJSONMap  string
+		KeyFieldJSONList string
+		ArgsSource       string
+		HashKey          string
+		SortKey          string
+		ParentKey        string
+		Parent           string
+		FieldName        string
+		DataSource       *Source
 	}
 
 	d := ResolverData{
-		KeyFieldJSONMap: r.KeyFieldJSONMap(),
-		ArgsSource:      r.ArgsSource,
-		Parent:          r.Parent,
-		FieldName:       r.FieldName,
-		DataSource:      r.DataSource,
+		KeyFieldJSONMap:  r.KeyFieldJSONMap(),
+		KeyFieldJSONList: r.KeyFieldJSONList(),
+		ArgsSource:       r.ArgsSource,
+		Parent:           r.Parent,
+		FieldName:        r.FieldName,
+		DataSource:       r.DataSource,
 	}
 
 	if r.DataSource.Type == "dynamo" && len(r.KeyFields) > 0 {
