@@ -1,0 +1,17 @@
+{{define "request" -}}
+#set( $keys={{ .KeyFieldJSONList }} )
+
+{
+    "version": "2017-02-28",
+    "operation": "Query",
+    "query": {
+        "expression": "$keys.get(0) = :$keys.get(0) #if( $keys.size == 2 ) AND $keys.get(1)#end",
+        "expressionValues" : {
+            ":$keys.get(0)": $util.dynamodb.toDynamoDBJson($ctx.{{ .ArgsSource }}.get($keys.get(0))),
+            #if( $keys.size == 2 )
+            ":$keys.get(1)": $util.dynamodb.toDynamoDBJson($ctx.{{ .ArgsSource }}.get($keys.get(1)))
+            #end
+        }
+    }
+}
+{{- end}}
