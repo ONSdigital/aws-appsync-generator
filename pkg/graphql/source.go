@@ -30,6 +30,7 @@ type (
 	DynamoSource struct {
 		HashKey *DynamoKeyType `yaml:"hash_key"`
 		SortKey *DynamoKeyType `yaml:"sort_key,omitempty"`
+		Backup  bool           `yaml:"backup,omitempty"`
 	}
 
 	// SQLSource represents a sql based db data source
