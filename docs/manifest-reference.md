@@ -34,6 +34,8 @@ Exactly one of `dynamo` or `sql` subblocks _must_ be supplied
     - **sort_key** [DynamoKey, optional]: Specifies the field to be used as the table `sort key`
       - **name** [String, required]: Name of the field
       - **type** [String, optional]: The dynamodb type of the field (default `S` (string))
+    - **backup** [Bool, optional]: Sets whether to enable incrementatal backup on the table. Default `false`
+      - _be aware, enabling backup has a cost implication, so only use for tables that require it_
   - **sql** [Hash, optional]
     - _not yet implemented_
 
@@ -47,6 +49,7 @@ sources:
     dynamo:
       hash_key:
         name: email
+      backup: true
 
   customers:
     name: customers
