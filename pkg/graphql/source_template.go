@@ -26,7 +26,6 @@ EOF
 resource "aws_dynamodb_table" "{{.Name}}" {
 	name 			= "${terraform.workspace}-{{.Name}}"
 	billing_mode 	= "PAY_PER_REQUEST"
-	{{ if .Dynamo.Backup }}point_in_time_recovery = enabled{{ end }}
 	hash_key 		= "{{.Dynamo.HashKey.Name}}"
 	{{ if .Dynamo.SortKey -}}
 	range_key		= "{{.Dynamo.SortKey.Name}}"
@@ -36,6 +35,10 @@ resource "aws_dynamodb_table" "{{.Name}}" {
 		type = "{{.Dynamo.SortKey.Type}}"
 	}
 	{{- end }}
+
+	{{ if .Dynamo.Backup }}point_in_time_recovery {
+		enabled = true
+	}{{ end }}
 
 	attribute {
 		name = "{{.Dynamo.HashKey.Name}}"
