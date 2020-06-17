@@ -1,6 +1,6 @@
 # AWS Appsync Builder
 
-[![Build Status](https://travis-ci.com/ONSdigital/aws-appsync-generator.svg?branch=master)](https://travis-ci.com/ONSdigital/aws-appsync-generator) [![](https://godoc.org/github.com/ONSdigital/aws-appsync-generator/pkg/schema?status.svg)](http://godoc.org/github.com/ONSdigital/aws-appsync-generator/pkg/schema)
+![Unit tests](https://github.com/ONSdigital/aws-appsync-generator/workflows/Unit%20tests/badge.svg) [![](https://godoc.org/github.com/ONSdigital/aws-appsync-generator/pkg/schema?status.svg)](http://godoc.org/github.com/ONSdigital/aws-appsync-generator/pkg/schema) [![Go Report Card](https://goreportcard.com/badge/github.com/ONSdigital/aws-appsync-generator)](https://goreportcard.com/report/github.com/ONSdigital/aws-appsync-generator)
 
 Generates appsync-flavour graphql schema, resolvers and terraform configuration
 
