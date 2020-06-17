@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   build:
-    runs-ons: ubuntu-latest
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         go: ["1.13", "1.14"]
