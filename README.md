@@ -6,10 +6,10 @@ Generates appsync-flavour graphql schema, resolvers and terraform configuration
 
 ## Usage
 
-| Arg             | Default          | Required | Description                    |
-| --------------- | ---------------- | -------- | ------------------------------ |
-| `-m --manifest` | `./manifest.yml` | no       | Manifest file to generate from |
-| `-o --output`   | `./generated`    | no       | Default generated output path  |
+| Arg             | Default          | Required | Description                                                                                               |
+| --------------- | ---------------- | -------- | --------------------------------------------------------------------------------------------------------- |
+| `-m --manifest` | `./manifest.yml` | no       | Manifest file to generate from                                                                            |
+| `-o --output`   | `./generated`    | no       | Default generated output path **Warning: Anything existing in this path will be wiped before generation** |
 
 Example:
 
