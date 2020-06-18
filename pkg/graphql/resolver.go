@@ -65,7 +65,7 @@ func (r *Resolver) KeyFieldJSONList() string {
 }
 
 // KeyFieldArgsString returns the keyfield names and types in a string format
-// suitable to be used as the arguments list in a resolver defintion in
+// suitable to be used as the arguments list in a resolver definition in
 // the schemea
 func (r *Resolver) KeyFieldArgsString() string {
 

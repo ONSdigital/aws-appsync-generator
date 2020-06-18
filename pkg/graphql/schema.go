@@ -71,7 +71,7 @@ var funcMap = template.FuncMap{
 	},
 }
 
-// GenerateBytes renders the schema to a bytes buffer ready to be writen to
+// GenerateBytes renders the schema to a bytes buffer ready to be written to
 // an output stream
 func (s *Schema) GenerateBytes() ([]byte, error) {
 	generated := bytes.Buffer{}
@@ -232,7 +232,7 @@ func (s *Schema) WriteAll() error {
 	}
 
 	if len(s.Errors) > 0 {
-		return errors.New("errors occured during generation")
+		return errors.New("errors occurred during generation")
 	}
 	return nil
 }
