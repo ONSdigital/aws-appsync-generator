@@ -3,7 +3,7 @@ package graphql_test
 import (
 	"testing"
 
-	"github.com/ONSdigital/aws-appsync-generator/pkg/graphql"
+	"github.com/ONSdigital/aws-appsync-generator/pkg_old/graphql"
 	"github.com/stretchr/testify/assert"
 )
 

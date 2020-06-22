@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/ONSdigital/aws-appsync-generator/pkg/graphql"
+	"github.com/ONSdigital/aws-appsync-generator/pkg_old/graphql"
 	"github.com/stretchr/testify/assert"
 	"gopkg.in/yaml.v2"
 )

@@ -1,0 +1,93 @@
+
+
+enum Channel {
+    EMAIL
+    LETTER
+    OTHER
+}
+
+enum Priority {
+    LOW
+    NORMAL
+    HIGH
+}
+
+enum Status {
+    NEW
+    ACKNOWLEDGED
+    RESPONDED
+    REJECTED
+}
+
+type ActionNote {
+    request_number: String!
+    id: ID!
+    actionee: String
+    note: String
+    date: AWSDate
+    type: String
+}
+
+type Animal {
+    id: ID!
+    name: String
+    colour: String
+    food: [String]
+    legs: Int
+}
+
+type Document {
+    request_number: String!
+    uuid: ID!
+    url: AWSURL
+    description: String
+}
+
+type Food {
+    id: ID!
+    name: String
+    tasty: Boolean
+}
+
+type ImplementationNote {
+    request_number: String!
+    id: ID!
+    implementer: String
+    note: String
+    date: AWSDate
+    status: String
+}
+
+type RefData {
+    refcat: String!
+    order: Int!
+    label: String!
+}
+
+type Request {
+    number: String
+    type: String
+    title: String
+    issue: String
+    action: String
+    priority: Int
+    priorityLabel: String
+    targetDate: AWSDateTime
+    categoryName: String
+    processStage: String
+    createdBy: String
+    dateRaised: AWSDateTime
+    approver: String
+    approverAction: String
+    dateApproverAction: AWSDateTime
+    implementedBy: String
+    dateImplemented: AWSDateTime
+    implementationStatus: String
+    acceptedBy: String
+    dateAccepted: AWSDateTime
+    actionNotes: [ActionNote]
+    implementationNotes: [ImplementationNote]
+    documents: [Document]
+    links: [Link]
+}
+
