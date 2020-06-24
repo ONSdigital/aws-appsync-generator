@@ -84,9 +84,11 @@ resource "aws_appsync_datasource" "{{ .Identifier }}" {
 # ===============================================
 # RESOLVERS
 # ===============================================
-{{define "resolver"}}
-resource "aws_appsync_resolver" "{{ .TFIDentifier }}" {
+{{range .Resolvers}}
+resource "aws_appsync_resolver" "{IDENTIFIER}" {
 	api_id
+
+	# TODO
 }
 {{end}}
 `))

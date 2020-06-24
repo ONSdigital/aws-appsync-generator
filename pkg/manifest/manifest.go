@@ -16,6 +16,8 @@ import (
 var supportedMajorManifestVersion = "v2"
 var reVersion = regexp.MustCompile("version: *(v.*)")
 
+const defaultMappingTemplatesFolder = "mapping-templates"
+
 // TODO
 // - Validate schema to ensure mandatory elements are not missing
 //	- e.g. hashKey in dynamo data sources
@@ -32,15 +34,17 @@ type (
 		APINameSuffix string `yaml:"apiNameSuffix"`
 
 		// GraphQL schema type definitions
-		Objects   map[string]Object   `yaml:"objects,omitempty"`
-		Enums     map[string]Enum     `yaml:"enums,omitempty"`
-		Queries   map[string]Resolver `yaml:"queries,omitempty"`
-		Mutations map[string]Resolver `yaml:"mutations,omitempty"`
+		Objects   map[string]Object `yaml:"objects,omitempty"`
+		Enums     map[string]Enum   `yaml:"enums,omitempty"`
+		Queries   Object            `yaml:"queries,omitempty"`
+		Mutations Object            `yaml:"mutations,omitempty"`
 
 		// Data source definitions
 		DataSources map[string]DataSource `yaml:"sources,omitempty"`
 
-		parsed bool
+		path      string
+		resolvers map[string]*Resolver
+		parsed    bool
 	}
 
 	// Object represents a graphql schema object
@@ -49,15 +53,11 @@ type (
 	// Enum represents a graphql enum type
 	Enum []string
 
-	// Resolver represents a graphql resolver
-	Resolver struct {
-		Action string `yaml:"action"`
-	}
-
 	// Field represent a graphql schema object field type
 	Field struct {
-		Name             string `yaml:"field"`
-		ExcludeFromInput bool   `yaml:"excludeFromInput,omitempty"`
+		Name             string    `yaml:"field"`
+		ExcludeFromInput bool      `yaml:"excludeFromInput,omitempty"`
+		Resolver         *Resolver `yaml:"resolver,omitempty"`
 	}
 )
 
@@ -91,12 +91,58 @@ func Parse(data []byte) (*Manifest, error) {
 	err = m.ValidateDataSources()
 	var ve *ValidationError
 	if errors.As(err, &ve) {
-
 		return nil, errors.Unwrap(err)
+	}
+
+	err = m.DiscoverResolvers()
+	if err != nil {
+		return nil, err
 	}
 
 	m.parsed = true
 	return &m, nil
+}
+
+// Resolvers returns all resolvers currently discovered from the manifest. Can
+// only be called once the manifest has been successfully parsed. Attempted to do
+// so before will return an error
+func (m *Manifest) Resolvers() (map[string]*Resolver, error) {
+	if !m.parsed {
+		return nil, errors.New("manifest not parsed")
+	}
+	return m.resolvers, nil
+}
+
+// DiscoverResolvers finds all resolvers defined on fields, queries and mutations
+// in the manifest and populates the `Resolvers` lookup.
+// Resolvers are associated to their parent type. This will either be a "special"
+// type (query / mutation) or the name of the parent object.
+func (m *Manifest) DiscoverResolvers() error {
+	m.resolvers = make(map[string]*Resolver)
+
+	for _, q := range m.Queries {
+		if q.Resolver != nil {
+			m.resolvers[q.Name] = q.Resolver
+			m.resolvers[q.Name].ParentType = "query"
+		}
+	}
+
+	for _, mt := range m.Mutations {
+		if mt.Resolver != nil {
+			m.resolvers[mt.Name] = mt.Resolver
+			m.resolvers[mt.Name].ParentType = "mutation"
+		}
+	}
+
+	for on, fields := range m.Objects {
+		for _, f := range fields {
+			if f.Resolver != nil {
+				m.resolvers[f.Name] = f.Resolver
+				m.resolvers[f.Name].ParentType = on
+			}
+		}
+	}
+	return nil
 }
 
 // ValidationError wraps errors returned from validating a manifest

@@ -1,0 +1,22 @@
+{{define "signature" -}}
+id: ID!
+{{- end}}
+
+{{define "request" -}}
+#set( $keyFields={{ .KeyFieldJSONMap }} )
+{
+    "version": "2017-02-28",
+    "operation": "GetItem",
+    "key": {
+        #foreach( $key in $keyFields.keySet() )
+        #if( !$util.IsNull($ctx.{{ .ArgsSource }}.get("$key")) )
+        "$key": $util.dynamodb.toDynamoDBJson($ctx.{{ .ArgsSource }}.get("$key")),
+        #end
+        #end
+    }
+}
+{{- end}}
+
+{{define "response" -}}
+$util.toJson($ctx.result)
+{{- end}}

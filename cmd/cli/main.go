@@ -5,19 +5,22 @@ import (
 	"log"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
+	"text/template"
 
 	"github.com/ONSdigital/aws-appsync-generator/pkg/manifest"
+	"github.com/ONSdigital/aws-appsync-generator/pkg/mapping"
 	"github.com/ONSdigital/aws-appsync-generator/pkg/schema"
-	"github.com/ONSdigital/aws-appsync-generator/pkg/serverless"
 	"github.com/ONSdigital/aws-appsync-generator/pkg/terraform"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
 )
 
-var (
-	// Version is set by build flags
-	Version = "0.0.0"
-)
+// Version is set by build flags
+var Version = "0.0.0"
+
+var dataSourceTypes = []string{"dynamo", "sql", "lambda"}
 
 func main() {
 	app := &cli.App{
@@ -37,14 +40,13 @@ func main() {
 				Aliases: []string{"o"},
 				Usage:   "specify an output path",
 			},
-		},
-		Commands: []*cli.Command{
-			{
-				Name:   "run",
-				Usage:  "run generator",
-				Action: runCommand,
+			&cli.StringFlag{
+				Name:    "templates",
+				Aliases: []string{"t"},
+				Usage:   "specify a custom template folder",
 			},
 		},
+		Action: runCommand,
 	}
 
 	err := app.Run(os.Args)
@@ -67,8 +69,6 @@ func runCommand(c *cli.Context) error {
 		return err
 	}
 
-	// spew.Dump(man)
-
 	s, err := schema.NewFromManifest(man)
 	if err != nil {
 		return err
@@ -85,15 +85,33 @@ func runCommand(c *cli.Context) error {
 	s.Write(fSchema)
 	fSchema.Close()
 
-	tf, err := terraform.NewFromManifest(man)
+	templateLookup := mapping.New()
+
+	// Standard mapping templates
+	var templatePath string
+	templatePath = "templates"
+	if err := importTemplates(templateLookup, templatePath); err != nil {
+		return errors.Wrap(err, "failed to import standard templates")
+	}
+
+	// Custom mapping templates
+	templatePath = filepath.Join(filepath.Dir(manifestFile), "mapping-templates")
+	if err := importTemplates(templateLookup, templatePath); err != nil {
+		return errors.Wrap(err, "failed to import custom templates")
+	}
+
+	// terraform ------------
+	tf, err := terraform.NewFromManifest(man, templateLookup)
 	if err != nil {
 		return err
 	}
 
+	log.Println("Generating terraform")
 	terraformName := "main.tf"
 	if p := c.String("outpath"); p != "" {
 		terraformName = path.Join(p, terraformName)
 	}
+	log.Println("Writing terraform output to:", terraformName)
 	fTerraform, err := os.Create(terraformName)
 	if err != nil {
 		return err
@@ -101,21 +119,52 @@ func runCommand(c *cli.Context) error {
 	tf.Write(fTerraform)
 	fTerraform.Close()
 
-	// serverless
-	sless, err := serverless.NewFromManifest(man)
-	if err != nil {
-		return err
-	}
-	serverlessName := "serverless.yml"
-	if p := c.String("outpath"); p != "" {
-		serverlessName = path.Join(p, serverlessName)
-	}
-	fServerless, err := os.Create(serverlessName)
-	if err != nil {
-		return err
-	}
-	sless.Write(fServerless)
-	fServerless.Close()
+	// // serverless -----------
+	// log.Println("Generating serverless")
+	// sless, err := serverless.NewFromManifest(man, templates)
+	// if err != nil {
+	// 	return err
+	// }
+	// serverlessName := "serverless.yml"
+	// if p := c.String("outpath"); p != "" {
+	// 	serverlessName = path.Join(p, serverlessName)
+	// }
+	// fServerless, err := os.Create(serverlessName)
+	// if err != nil {
+	// 	return err
+	// }
+	// sless.Write(fServerless)
+	// fServerless.Close()
 
+	return nil
+}
+
+func importTemplates(lookup mapping.Templates, templatePath string) error {
+	for _, dst := range dataSourceTypes {
+
+		templateDataSourcePath := filepath.Join(templatePath, dst)
+
+		if _, err := os.Stat(templateDataSourcePath); os.IsNotExist(err) {
+			// Ignore missing datasource configurations
+			continue
+		}
+		files, err := ioutil.ReadDir(templateDataSourcePath)
+		if err != nil {
+			return err
+		}
+
+		for _, file := range files {
+			if strings.HasSuffix(file.Name(), ".tmpl") {
+				name := strings.TrimSuffix(file.Name(), ".tmpl")
+				t, err := template.New(name).ParseFiles(
+					filepath.Join(templateDataSourcePath, file.Name()),
+				)
+				if err != nil {
+					return errors.Wrap(err, "failed to parse template")
+				}
+				lookup[dst][name] = t
+			}
+		}
+	}
 	return nil
 }

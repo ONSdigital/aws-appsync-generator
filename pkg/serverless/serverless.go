@@ -2,6 +2,7 @@ package serverless
 
 import (
 	"fmt"
+	"html/template"
 	"io"
 	"strings"
 
@@ -206,7 +207,7 @@ func New() *Configuration {
 
 // NewFromManifest returns a populated Configuration build from the
 // given manifest data
-func NewFromManifest(m *manifest.Manifest) (*Configuration, error) {
+func NewFromManifest(m *manifest.Manifest, templates map[string]*template.Template) (*Configuration, error) {
 
 	sc := New()
 	sc.Custom.AppSync.Name = m.APINameSuffix

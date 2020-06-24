@@ -32,3 +32,9 @@ scratch*
 *.yml
 
 _scratch/
+
+*.tf
+
+_*/
+
+schema.public.graphql
