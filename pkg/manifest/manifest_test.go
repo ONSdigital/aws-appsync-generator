@@ -68,3 +68,54 @@ func TestDynamoDataSource(t *testing.T) {
 	}
 
 }
+
+func TestGettingAttributeNameAndType(t *testing.T) {
+
+	// Tests cover:
+	// - GetAttributeName
+	// - GetAttributeType
+	// - GetAttributeTypeStripped
+
+	tests := []struct {
+		scenario         string
+		name             string
+		expectedName     string
+		expectedType     string
+		expectedStripped string
+	}{
+		{
+			scenario:         "Simple case with default type",
+			name:             "name",
+			expectedName:     "name",
+			expectedType:     "String",
+			expectedStripped: "String",
+		},
+		{
+			scenario:         "Simple case with defined type",
+			name:             "name:Boolean!",
+			expectedName:     "name",
+			expectedType:     "Boolean!",
+			expectedStripped: "Boolean",
+		},
+		{
+			scenario:         "List type",
+			name:             "name:[String]",
+			expectedName:     "name",
+			expectedType:     "[String]",
+			expectedStripped: "String",
+		},
+		{
+			scenario:         "List mandatory type",
+			name:             "name:[String!]",
+			expectedName:     "name",
+			expectedType:     "[String!]",
+			expectedStripped: "String",
+		},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.expectedName, manifest.GetAttributeName(test.name), test.scenario)
+		assert.Equal(t, test.expectedType, manifest.GetAttributeType(test.name, "String"), test.scenario)
+		assert.Equal(t, test.expectedStripped, manifest.GetAttributeTypeStripped(test.name, "String"), test.scenario)
+	}
+}

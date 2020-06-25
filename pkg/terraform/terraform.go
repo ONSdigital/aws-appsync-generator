@@ -9,7 +9,6 @@ import (
 
 	"github.com/ONSdigital/aws-appsync-generator/pkg/manifest"
 	"github.com/ONSdigital/aws-appsync-generator/pkg/mapping"
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pkg/errors"
 )
 
@@ -17,7 +16,7 @@ type (
 	// Terraform represents the overall data to populate the terraform
 	Terraform struct {
 		AppSync           AppSync
-		Resolvers         []*Resolver
+		Resolvers         []*manifest.Resolver
 		ResolverTemplates mapping.Templates
 		// DataSources       struct {
 		// 	Dynamo []DynamoDataSource
@@ -34,6 +33,19 @@ type (
 
 	// DataSource is the interface for all data source types
 	DataSource interface{}
+	// DataSource struct {
+	// 	// Dynamo
+	// 	DisableBackup bool
+	// 	HashKey       string
+	// 	SortKey       string
+
+	// 	// RDSSource
+	// 	Existing       bool
+	// 	Identifier     string
+	// 	DatabaseName   string
+	// 	Schema         string
+	// 	ServiceRoleArn string
+	// }
 
 	// DynamoDataSource declares a dynamoDB table to be used as
 	// an appsync datasource
@@ -75,7 +87,7 @@ func NewDynamoKey(field string) *DynamoKey {
 func New() *Terraform {
 	return &Terraform{
 		AppSync:   AppSync{},
-		Resolvers: []*Resolver{},
+		Resolvers: []*manifest.Resolver{},
 		DataSources: map[string]map[string]DataSource{
 			"dynamo": make(map[string]DataSource),
 			"sql":    make(map[string]DataSource),
@@ -86,14 +98,8 @@ func New() *Terraform {
 
 // NewFromManifest creates a terraform from a parsed manifest
 func NewFromManifest(m *manifest.Manifest, templates mapping.Templates) (*Terraform, error) {
-
 	tf := New()
 	tf.ResolverTemplates = templates
-
-	// .....
-	spew.Dump(m.Queries) // FIXME REMOVE
-	// .....
-
 	if err := tf.ImportFromManifest(m); err != nil {
 		return nil, err
 	}
@@ -126,89 +132,70 @@ func (tf *Terraform) ImportFromManifest(m *manifest.Manifest) error {
 		default:
 			return fmt.Errorf("data source type not supported yet: %T", t)
 		}
-
-		// switch {
-		// case ds.Dynamo != nil: // Dynamo
-		// 	dds := DynamoDataSource{
-		// 		Name:          dsName,
-		// 		Identifier:    stripNameToIdentifier(dsName),
-		// 		DisableBackup: ds.Dynamo.DisableBackup,
-		// 		HashKey:       NewDynamoKey(ds.Dynamo.HashKey),
-		// 		SortKey:       NewDynamoKey(ds.Dynamo.SortKey),
-		// 	}
-		// 	tf.DataSources.Dynamo = append(tf.DataSources.Dynamo, dds)
-		// case ds.RDS
-
-		// }
 	}
 
-	resolvers, err := m.Resolvers()
+	resolversByParent, err := m.Resolvers()
 	if err != nil {
 		return errors.New("failed to retrieve resolvers from manifest")
 	}
-	for name, r := range resolvers {
+	for _, resolvers := range resolversByParent {
+		for name, r := range resolvers {
 
-		resolver := &Resolver{}
-		if err := resolver.BuildDefinition(r); err != nil {
-			return errors.Wrap(err, "error parsing resolver definition")
-		}
+			// 1. Get the associated data source for the resolver
+			// 2. Find the type of the data source
+			// 3. Use that to find the relevant sub-loaded template
 
-		// 1. Get the associated data source for the resolver
-		// 2. Find the type of the data source
-		// 3. Use that to find the relevant sub-loaded template
-
-		ds := tf.getDataSourceByName(r.Source)
-		if ds == nil {
-			return fmt.Errorf("no datasource with name '%s' decalred", r.Source)
-		}
-
-		dataSourceType := ""
-
-		switch tp := ds.(type) {
-		case DynamoDataSource:
-			dataSourceType = "dynamo"
-		default:
-			return fmt.Errorf("unsupported datasource type: %s", tp)
-		}
-
-		t, ok := tf.ResolverTemplates[dataSourceType][r.Template]
-		if !ok {
-
-			for k, v := range tf.ResolverTemplates {
-				log.Println(k)
-				for k := range v {
-					log.Println("  ", k)
-				}
+			ds := tf.getDataSourceByName(r.DataSourceName)
+			if ds == nil {
+				return fmt.Errorf("no datasource with name '%s' decalred", r.DataSourceName)
 			}
 
-			return fmt.Errorf("template %s/%s not loaded", dataSourceType, r.Template)
+			dataSourceType := ""
+			dataSourceIdentifier := ""
+			switch tp := ds.(type) {
+			case DynamoDataSource:
+				dataSourceType = "dynamo"
+				dataSourceIdentifier = tp.Identifier
+			default:
+				return fmt.Errorf("unsupported datasource type: %s", tp)
+			}
+
+			template, err := tf.ResolverTemplates.Get(dataSourceType, r.Template)
+			if err != nil {
+				return errors.Wrapf(err, "missing mapping for resolver %s", name)
+			}
+
+			fieldName := manifest.GetAttributeName(name)
+			returnType := manifest.GetAttributeTypeStripped(name, "")
+
+			r.Identifier = strings.ToLower(fmt.Sprintf("%s_%s_%s", dataSourceType, r.ParentType, fieldName))
+			r.ReturnType = returnType
+			r.FieldName = fieldName
+			r.DataSourceType = dataSourceType
+			r.DataSourceIdentifier = dataSourceIdentifier
+
+			var b bytes.Buffer
+			if err = template.Template.ExecuteTemplate(&b, "signature", r); err != nil {
+				return errors.Wrapf(err, "failed to create signature for resolver '%s'", r)
+			}
+			r.Signature = b.String()
+			b.Reset()
+
+			if err = template.Template.ExecuteTemplate(&b, "request", r); err != nil {
+				return errors.Wrapf(err, "failed to create request for resolver '%s'", r)
+			}
+			r.Request = b.String()
+			b.Reset()
+
+			if err = template.Template.ExecuteTemplate(&b, "request", r); err != nil {
+				return errors.Wrapf(err, "failed to create response for resolver '%s'", r)
+			}
+			r.Response = b.String()
+			b.Reset()
+
+			log.Printf("Generate resolver: %s", r)
+			tf.Resolvers = append(tf.Resolvers, r)
 		}
-
-		// TODO
-		// Build the vars that need to be passed to the templates
-		// Then actually pass to the templates
-
-		var b bytes.Buffer
-
-		if err = t.ExecuteTemplate(&b, "signature", nil); err != nil {
-			return errors.Wrapf(err, "failed to create signature for resolver '%s'", name)
-		}
-		resolver.Signature = b.String()
-		b.Reset()
-
-		if err = t.ExecuteTemplate(&b, "request", nil); err != nil {
-			return errors.Wrapf(err, "failed to create request for resolver '%s'", name)
-		}
-		resolver.Request = b.String()
-		b.Reset()
-
-		if err = t.ExecuteTemplate(&b, "request", nil); err != nil {
-			return errors.Wrapf(err, "failed to create response for resolver '%s'", name)
-		}
-		resolver.Response = b.String()
-		b.Reset()
-
-		tf.Resolvers = append(tf.Resolvers, resolver)
 	}
 	return nil
 }

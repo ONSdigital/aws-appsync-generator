@@ -23,6 +23,11 @@ const defaultMappingTemplatesFolder = "mapping-templates"
 //	- e.g. hashKey in dynamo data sources
 
 type (
+	// ResolverMap is synatic sugar for the nested resolver map type
+	ResolverMap map[string]map[string]*Resolver
+)
+
+type (
 
 	// Manifest is the top level representation of a manifest configuraion that
 	// has been parsed
@@ -45,6 +50,10 @@ type (
 		path      string
 		resolvers map[string]*Resolver
 		parsed    bool
+
+		// Resolvers mapped by parent (query, mutation or
+		// object name) to field name
+		resolversByParent ResolverMap
 	}
 
 	// Object represents a graphql schema object
@@ -106,11 +115,11 @@ func Parse(data []byte) (*Manifest, error) {
 // Resolvers returns all resolvers currently discovered from the manifest. Can
 // only be called once the manifest has been successfully parsed. Attempted to do
 // so before will return an error
-func (m *Manifest) Resolvers() (map[string]*Resolver, error) {
+func (m *Manifest) Resolvers() (ResolverMap, error) {
 	if !m.parsed {
 		return nil, errors.New("manifest not parsed")
 	}
-	return m.resolvers, nil
+	return m.resolversByParent, nil
 }
 
 // DiscoverResolvers finds all resolvers defined on fields, queries and mutations
@@ -119,29 +128,37 @@ func (m *Manifest) Resolvers() (map[string]*Resolver, error) {
 // type (query / mutation) or the name of the parent object.
 func (m *Manifest) DiscoverResolvers() error {
 	m.resolvers = make(map[string]*Resolver)
+	m.resolversByParent = make(map[string]map[string]*Resolver)
 
+	m.resolversByParent["query"] = make(map[string]*Resolver)
 	for _, q := range m.Queries {
 		if q.Resolver != nil {
-			m.resolvers[q.Name] = q.Resolver
-			m.resolvers[q.Name].ParentType = "query"
+			q.Resolver.ParentType = "Query"
+			q.Resolver.FieldName = q.Name
+			m.resolversByParent["query"][q.Name] = q.Resolver
 		}
 	}
 
+	m.resolversByParent["mutation"] = make(map[string]*Resolver)
 	for _, mt := range m.Mutations {
 		if mt.Resolver != nil {
-			m.resolvers[mt.Name] = mt.Resolver
-			m.resolvers[mt.Name].ParentType = "mutation"
+			mt.Resolver.ParentType = "Mutation"
+			mt.Resolver.FieldName = mt.Name
+			m.resolversByParent["mutation"][mt.Name] = mt.Resolver
 		}
 	}
 
 	for on, fields := range m.Objects {
+		m.resolversByParent[on] = make(map[string]*Resolver)
 		for _, f := range fields {
 			if f.Resolver != nil {
-				m.resolvers[f.Name] = f.Resolver
-				m.resolvers[f.Name].ParentType = on
+				f.Resolver.ParentType = on
+				f.Resolver.FieldName = f.Name
+				m.resolversByParent[on][f.Name] = f.Resolver
 			}
 		}
 	}
+
 	return nil
 }
 
@@ -211,6 +228,20 @@ func GetAttributeName(attr string) string {
 func GetAttributeType(attr, def string) string {
 	if strings.Contains(attr, ":") {
 		return strings.Split(attr, ":")[1]
+	}
+	return def
+}
+
+// GetAttributeTypeStripped does the same as GetAttributeType, with the addition
+// of stripped any mandatory flag (!) or list delimiters ([])
+// e.g. [Animal!] -> Animal
+func GetAttributeTypeStripped(attr, def string) string {
+	if strings.Contains(attr, ":") {
+		s := strings.Split(attr, ":")[1]
+		s = strings.TrimPrefix(s, "[")
+		s = strings.TrimSuffix(s, "]")
+		s = strings.TrimSuffix(s, "!")
+		return s
 	}
 	return def
 }

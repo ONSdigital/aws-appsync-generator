@@ -18,7 +18,7 @@ resource "aws_iam_role_policy_attachment" "appsync" {
 resource "aws_appsync_graphql_api" "appsync" {
 	authentication_type = "API_KEY"
 	name                = "${terraform.workspace}-{{ .Name }}"
-	schema              = "${file("schema.public.graphql")}"
+	schema              = file("schema.public.graphql")
 	log_config {
 		cloudwatch_logs_role_arn = aws_iam_role.appsync.arn
 		field_log_level          = "ERROR"
@@ -38,9 +38,9 @@ output "graphql_host" {
 # ===============================================
 # DATA SOURCES
 # ===============================================
-{{range .DataSources.Dynamo}}
+{{range .DataSources.dynamo}}
 # Dynamo: {{ .Name }} ----
-resource "aws_iam_role_policy" "record_dynamo_{{ .Identifier }}" {
+resource "aws_iam_role_policy" "dynamo_{{ .Identifier }}" {
 	name		= "${terraform.workspace}-dynamo-{{.Name}}"
 	role 		= aws_iam_role.appsync.id
 	policy 		= "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Action\":[\"dynamodb:*\"],\"Effect\":\"Allow\",\"Resource\":[\"${aws_dynamodb_table.{{ .Identifier }}.arn}\"]}]}"
@@ -85,10 +85,17 @@ resource "aws_appsync_datasource" "{{ .Identifier }}" {
 # RESOLVERS
 # ===============================================
 {{range .Resolvers}}
-resource "aws_appsync_resolver" "{IDENTIFIER}" {
-	api_id
-
-	# TODO
+resource "aws_appsync_resolver" "{{ .Identifier }}" {
+	api_id 		= aws_appsync_graphql_api.appsync.id
+	type		= "{{ .ParentType }}"
+	field		= "{{ .FieldName }}"
+	data_source	= "{{ .DataSourceType}}_{{ .DataSourceIdentifier }}"
+	request_template = <<EOF
+{{ .Request }}
+EOF
+	response_template = <<EOF
+{{ .Response }}
+EOF
 }
 {{end}}
 `))

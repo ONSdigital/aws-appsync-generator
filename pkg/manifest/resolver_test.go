@@ -40,9 +40,9 @@ func TestResolverUnmarshalYAML(t *testing.T) {
 			scenario: "Custom template OK",
 			yaml:     []byte("source: AnimalTable\naction: custom\ntemplate: my-template"),
 			expected: &manifest.Resolver{
-				Source:   "AnimalTable",
-				Action:   "custom",
-				Template: "my-template",
+				DataSourceName: "AnimalTable",
+				Action:         "custom",
+				Template:       "my-template",
 			},
 			err: nil,
 		},
@@ -50,9 +50,9 @@ func TestResolverUnmarshalYAML(t *testing.T) {
 			scenario: "Standard action OK",
 			yaml:     []byte("source: AnimalTable\naction: get-item"),
 			expected: &manifest.Resolver{
-				Source:   "AnimalTable",
-				Action:   "get-item",
-				Template: "get-item",
+				DataSourceName: "AnimalTable",
+				Action:         "get-item",
+				Template:       "get-item",
 			},
 			err: nil,
 		},
@@ -68,5 +68,85 @@ func TestResolverUnmarshalYAML(t *testing.T) {
 		default:
 			assert.EqualError(t, err, c.err.Error(), c.scenario)
 		}
+	}
+}
+
+func TestArgsSource(t *testing.T) {
+	type tc struct {
+		scenario string
+		resolver manifest.Resolver
+		expected string
+	}
+
+	cases := []tc{
+		{
+			scenario: "Query should be 'args'",
+			resolver: manifest.Resolver{ParentType: "Query"},
+			expected: "args",
+		},
+		{
+			scenario: "Mutation should be 'args'",
+			resolver: manifest.Resolver{ParentType: "Mutation"},
+			expected: "args",
+		},
+		{
+			scenario: "Object should be 'source'",
+			resolver: manifest.Resolver{ParentType: "Animal"},
+			expected: "source",
+		},
+	}
+
+	for _, c := range cases {
+		assert.Equal(t, c.expected, c.resolver.ArgsSource(), c.scenario)
+	}
+}
+
+func TestKeyFieldJSONMapAndList(t *testing.T) {
+
+	// Using the same scenarios to test both
+	// - KeyFieldJSONMap()
+	// - KeyFieldJSONList()
+
+	type tc struct {
+		scenario     string
+		resolver     manifest.Resolver
+		expectedMap  string
+		expectedList string
+	}
+
+	cases := []tc{
+		{
+			scenario:     "No fields",
+			resolver:     manifest.Resolver{},
+			expectedMap:  "{}",
+			expectedList: "[]",
+		},
+		{
+			scenario: "One mandatory field",
+			resolver: manifest.Resolver{
+				KeyFields: []manifest.Field{
+					{Name: "id:ID!"},
+				},
+			},
+			expectedMap:  `{"id":"ID"}`,
+			expectedList: `["id"]`,
+		},
+		{
+			scenario: "Several fields (with defaults)",
+			resolver: manifest.Resolver{
+				KeyFields: []manifest.Field{
+					{Name: "id:ID!"},
+					{Name: "color"},
+					{Name: "size:Int"},
+				},
+			},
+			expectedMap:  `{"id":"ID","color":"String","size":"Int"}`,
+			expectedList: `["id","color","size"]`,
+		},
+	}
+
+	for _, c := range cases {
+		assert.Equal(t, c.expectedMap, c.resolver.KeyFieldJSONMap(), c.scenario+" (map)")
+		assert.Equal(t, c.expectedList, c.resolver.KeyFieldJSONList(), c.scenario+" (list)")
 	}
 }

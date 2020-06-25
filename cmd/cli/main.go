@@ -6,8 +6,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"strings"
-	"text/template"
 
 	"github.com/ONSdigital/aws-appsync-generator/pkg/manifest"
 	"github.com/ONSdigital/aws-appsync-generator/pkg/mapping"
@@ -69,7 +67,17 @@ func runCommand(c *cli.Context) error {
 		return err
 	}
 
-	s, err := schema.NewFromManifest(man)
+	// Import mapping templates
+	templateLookup := mapping.New()
+	if err := templateLookup.Import("templates"); err != nil {
+		return err
+	}
+	if err := templateLookup.Import(filepath.Join(filepath.Dir(manifestFile), "mapping-templates")); err != nil {
+		return err
+	}
+
+	// Schema ---------------
+	s, err := schema.NewFromManifest(man, templateLookup)
 	if err != nil {
 		return err
 	}
@@ -84,21 +92,6 @@ func runCommand(c *cli.Context) error {
 	}
 	s.Write(fSchema)
 	fSchema.Close()
-
-	templateLookup := mapping.New()
-
-	// Standard mapping templates
-	var templatePath string
-	templatePath = "templates"
-	if err := importTemplates(templateLookup, templatePath); err != nil {
-		return errors.Wrap(err, "failed to import standard templates")
-	}
-
-	// Custom mapping templates
-	templatePath = filepath.Join(filepath.Dir(manifestFile), "mapping-templates")
-	if err := importTemplates(templateLookup, templatePath); err != nil {
-		return errors.Wrap(err, "failed to import custom templates")
-	}
 
 	// terraform ------------
 	tf, err := terraform.NewFromManifest(man, templateLookup)
@@ -136,35 +129,5 @@ func runCommand(c *cli.Context) error {
 	// sless.Write(fServerless)
 	// fServerless.Close()
 
-	return nil
-}
-
-func importTemplates(lookup mapping.Templates, templatePath string) error {
-	for _, dst := range dataSourceTypes {
-
-		templateDataSourcePath := filepath.Join(templatePath, dst)
-
-		if _, err := os.Stat(templateDataSourcePath); os.IsNotExist(err) {
-			// Ignore missing datasource configurations
-			continue
-		}
-		files, err := ioutil.ReadDir(templateDataSourcePath)
-		if err != nil {
-			return err
-		}
-
-		for _, file := range files {
-			if strings.HasSuffix(file.Name(), ".tmpl") {
-				name := strings.TrimSuffix(file.Name(), ".tmpl")
-				t, err := template.New(name).ParseFiles(
-					filepath.Join(templateDataSourcePath, file.Name()),
-				)
-				if err != nil {
-					return errors.Wrap(err, "failed to parse template")
-				}
-				lookup[dst][name] = t
-			}
-		}
-	}
 	return nil
 }
