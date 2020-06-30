@@ -37,6 +37,10 @@ type (
 		// been defined in the `sources` section of the manifest
 		SourceKey string `yaml:"source"`
 
+		// Where there is a sort key, if true, sort in ascending order.
+		// If false, sort in descending order.
+		SortAscending bool `yaml:"sortAscending"`
+
 		// The below are set automatically as the schema is parsed. They should
 		// not be included in the manifest YAML.
 		DataSource *Source // Key to a datasource defined in the manifest
@@ -113,6 +117,7 @@ func (r *Resolver) GenerateBytes() ([]byte, error) {
 	type ResolverData struct {
 		KeyFieldJSONMap  string
 		KeyFieldJSONList string
+		SortAscending    bool
 		ArgsSource       string
 		HashKey          string
 		SortKey          string
@@ -125,6 +130,7 @@ func (r *Resolver) GenerateBytes() ([]byte, error) {
 	d := ResolverData{
 		KeyFieldJSONMap:  r.KeyFieldJSONMap(),
 		KeyFieldJSONList: r.KeyFieldJSONList(),
+		SortAscending:    r.SortAscending,
 		ArgsSource:       r.ArgsSource,
 		Parent:           r.Parent,
 		FieldName:        r.FieldName,

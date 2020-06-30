@@ -12,6 +12,7 @@
             ":$keys.get(1)": $util.dynamodb.toDynamoDBJson($ctx.{{ .ArgsSource }}.get($keys.get(1)))
             #end
         }
-    }
+    },
+    "scanIndexForward" : {{ .SortAscending }}
 }
 {{- end}}
