@@ -39,7 +39,7 @@ type (
 
 		// Where there is a sort key, if true, sort in ascending order.
 		// If false, sort in descending order.
-		SortAscending bool `yaml:"sortAscending"`
+		SortAscending bool `default:"true" yaml:"sortAscending"`
 
 		// The below are set automatically as the schema is parsed. They should
 		// not be included in the manifest YAML.
