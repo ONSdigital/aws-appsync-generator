@@ -17,7 +17,7 @@ const (
 )
 
 type (
-	// Resolver is the represenatation of a field resolver
+	// Resolver is the representation of a field resolver
 	Resolver struct {
 		// The Action for the resolver to perform - get, list, insert, update, delete
 		Action string `yaml:"action"`
@@ -39,7 +39,7 @@ type (
 
 		// Where there is a sort key, if true, sort in ascending order.
 		// If false, sort in descending order.
-		SortAscending bool `default:"true" yaml:"sortAscending"`
+		SortAscending *bool `yaml:"sortAscending"`
 
 		// The below are set automatically as the schema is parsed. They should
 		// not be included in the manifest YAML.
@@ -130,7 +130,7 @@ func (r *Resolver) GenerateBytes() ([]byte, error) {
 	d := ResolverData{
 		KeyFieldJSONMap:  r.KeyFieldJSONMap(),
 		KeyFieldJSONList: r.KeyFieldJSONList(),
-		SortAscending:    r.SortAscending,
+		SortAscending:    r.SortAscending == nil || *r.SortAscending,
 		ArgsSource:       r.ArgsSource,
 		Parent:           r.Parent,
 		FieldName:        r.FieldName,
