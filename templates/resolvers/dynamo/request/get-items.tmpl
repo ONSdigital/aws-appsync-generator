@@ -13,6 +13,6 @@
             #end
         }
     },
-    "scanIndexForward" : {{ .SortAscending }}
+    "scanIndexForward" :#if($ctx.args.get("sortAscending")) $ctx.args.get("sortAscending")#else {{ .SortAscending }} #end
 }
 {{- end}}

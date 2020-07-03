@@ -87,7 +87,12 @@ func (r *Resolver) KeyFieldArgsString() string {
 		for i, f := range r.KeyFields {
 			fl[i] = fmt.Sprintf(`%s:%s`, f.Name, f.Type.Name)
 		}
-		return "(" + strings.Join(fl, ",") + ")"
+		sortAscending := ""
+		if r.SortAscending != nil {
+			sortAscending = ", sortAscending: Boolean"
+		}
+		return "(" + strings.Join(fl, ",") +
+			sortAscending + ")"
 	}
 	return ""
 }
